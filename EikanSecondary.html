@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>栄冠セカンダリー（仮）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    /* ===============================
+       全体レイアウト・共通スタイル
+       =============================== */
+    :root {
+      --bg-main: #0b1a2f;
+      --bg-panel: #13243d;
+      --accent: #ffcc33;
+      --accent-soft: #ffd966;
+      --text-main: #f7f7f7;
+      --text-sub: #c0c6d7;
+      --danger: #ff6666;
+      --success: #6be38a;
+      --border-soft: #243954;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1b3358 0, #050811 55%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 600px; /* スマホ〜タブレット想定 */
+      padding: 10px 10px 16px;
+    }
+
+    .card {
+      background: var(--bg-panel);
+      border-radius: 10px;
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      padding: 8px 10px;
+      margin-bottom: 10px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: #3b2a00;
+      font-weight: 600;
+    }
+
+    .small-text {
+      font-size: 0.75rem;
+      color: var(--text-sub);
+    }
+
+    .divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 4px 0 6px;
+    }
+
+    /* ===============================
+       ヘッダー
+       =============================== */
+    .game-header {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .game-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .game-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+    }
+
+    .season-label {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      color: var(--accent-soft);
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-sub);
+    }
+
+    .info-row span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ===============================
+       タブメニュー
+       =============================== */
+    .tab-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .tab-button {
+      font-size: 0.7rem;
+      padding: 6px 4px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.25);
+      color: var(--text-sub);
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .tab-button.active {
+      background: var(--accent);
+      color: #2a1a00;
+      font-weight: 700;
+      border-color: transparent;
+    }
+
+    /* ===============================
+       メインコンテンツ領域
+       =============================== */
+    .main-view {
+      margin-top: 10px;
+    }
+
+    .tab-view {
+      display: none;
+      animation: fadeIn 0.18s ease-out;
+    }
+
+    .tab-view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ===============================
+       ホーム（予定・イベント）
+       =============================== */
+    .calendar-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .calendar-main {
+      flex: 2;
+    }
+
+    .calendar-side {
+      flex: 1.2;
+    }
+
+    .schedule-list {
+      list-style: none;
+      font-size: 0.8rem;
+    }
+
+    .schedule-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+    }
+
+    .schedule-item:last-child {
+      border-bottom: none;
+    }
+
+    .schedule-label {
+      font-size: 0.65rem;
+      padding: 1px 5px;
+      border-radius: 999px;
+    }
+
+    .schedule-label.practice {
+      background: rgba(107, 227, 138, 0.16);
+      color: var(--success);
+      border: 1px solid rgba(107, 227, 138, 0.5);
+    }
+
+    .schedule-label.match {
+      background: rgba(255, 102, 102, 0.16);
+      color: var(--danger);
+      border: 1px solid rgba(255, 102, 102, 0.5);
+    }
+
+    .schedule-label.event {
+      background: rgba(255, 204, 51, 0.16);
+      color: var(--accent-soft);
+      border: 1px solid rgba(255, 204, 51, 0.5);
+    }
+
+    .resource-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+    }
+
+    .resource-value {
+      font-weight: 700;
+      color: var(--accent-soft);
+    }
+
+    /* ===============================
+       チーム・選手一覧
+       =============================== */
+    .player-list {
+      max-height: 260px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .player-row {
+      display: grid;
+      grid-template-columns: 1.6fr 0.7fr 0.7fr 0.9fr;
+      gap: 4px;
+      padding: 3px 0;
+      font-size: 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      align-items: center;
+    }
+
+    .player-row.header {
+      font-weight: 700;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--text-sub);
+      border-bottom-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .player-name {
+      font-weight: 600;
+    }
+
+    .player-grade {
+      font-size: 0.7rem;
+      padding: 2px 4px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      text-align: center;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-size: 0.65rem;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    /* ===============================
+       練習メニュー
+       =============================== */
+    .training-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    .training-card {
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 8px;
+      padding: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .training-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(255, 204, 51, 0.6);
+    }
+
+    .training-name {
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .training-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--text-sub);
+    }
+
+    .training-desc {
+      font-size: 0.7rem;
+      margin-top: 2px;
+      color: var(--text-sub);
+    }
+
+    .training-footer {
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.7rem;
+    }
+
+    .btn-main {
+      border: none;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--accent);
+      color: #2f1a00;
+      cursor: pointer;
+    }
+
+    .btn-main:active {
+      transform: translateY(1px);
+    }
+
+    /* ===============================
+       試合画面（ダミー）
+       =============================== */
+    .match-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 8px;
+    }
+
+    .score-board {
+      font-size: 0.8rem;
+    }
+
+    .score-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 2px 0;
+    }
+
+    .inning-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      margin-bottom: 2px;
+      color: var(--text-sub);
+    }
+
+    .dummy-character {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      border: 1px dashed rgba(255, 255, 255, 0.3);
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      text-align: center;
+      padding: 6px;
+    }
+
+    /* ===============================
+       フッターバー（ターンボタンなど）
+       =============================== */
+    .footer-bar {
+      position: sticky;
+      bottom: 0;
+      margin-top: 8px;
+      background: linear-gradient(to top, #050811, transparent);
+      padding-top: 6px;
+    }
+
+    .footer-inner {
+      display: flex;
+      gap: 6px;
+    }
+
+    .footer-btn {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      font-size: 0.75rem;
+      padding: 6px 4px;
+      background: rgba(0, 0, 0, 0.4);
+      color: var(--text-main);
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .footer-btn.primary {
+      background: var(--accent);
+      color: #2f1a00;
+      font-weight: 700;
+      border-color: transparent;
+    }
+
+    /* スクロールバー（見た目だけ少し整える） */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- ===============================
+         ヘッダー：校名・年度・日付など
+         =============================== -->
+    <div class="card">
+      <div class="game-header">
+        <div class="game-title-row">
+          <div class="game-title">栄冠セカンダリー</div>
+          <div class="season-label" id="seasonLabel">西暦 20XX 年度</div>
+        </div>
+        <div class="info-row">
+          <span>高校名：<strong id="schoolName">○○高校</strong></span>
+          <span>現在：<span id="currentDateText">春・4月1週</span></span>
+        </div>
+        <div class="info-row">
+          <span>世代：<span id="generationText">1 代目</span></span>
+          <span>評判：<span id="reputationText">そこそこ</span></span>
+        </div>
+      </div>
+
+      <!-- タブバー -->
+      <div class="tab-bar">
+        <button class="tab-button active" data-tab="home">予定</button>
+        <button class="tab-button" data-tab="team">チーム</button>
+        <button class="tab-button" data-tab="training">練習</button>
+        <button class="tab-button" data-tab="match">試合</button>
+      </div>
+    </div>
+
+    <!-- ===============================
+         メインビュー：タブごとの画面
+         =============================== -->
+    <div class="main-view">
+
+      <!-- ▼ 予定 / ホーム画面 -->
+      <div class="tab-view active" id="tab-home">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">今週の予定</div>
+            <span class="badge">CALENDAR</span>
+          </div>
+          <div class="calendar-row">
+            <div class="calendar-main">
+              <ul class="schedule-list" id="scheduleList">
+                <!-- JSでダミー予定を挿入 -->
+              </ul>
+            </div>
+            <div class="calendar-side">
+              <div class="small-text">次のイベント</div>
+              <div id="nextEventText" style="font-size:0.8rem; margin-top:2px;">
+                夏大会1回戦まで 10 日
+              </div>
+              <div class="divider"></div>
+              <div class="small-text">リソース</div>
+              <div class="resource-row" style="margin-top:2px;">
+                <span>体力：</span>
+                <span class="resource-value" id="staminaText">やや多い</span>
+              </div>
+              <div class="resource-row">
+                <span>やる気：</span>
+                <span class="resource-value" id="moraleText">普通</span>
+              </div>
+              <div class="resource-row">
+                <span>ポイント：</span>
+                <span class="resource-value" id="pointText">25</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">メモ</div>
+            <span class="badge">MEMO</span>
+          </div>
+          <div class="small-text">
+            ここに「今年の目標」や「育成方針」などを書けるように、あとでメモ機能をつけてもOK。
+          </div>
+        </div>
+      </div>
+
+      <!-- ▼ チーム / 選手一覧 -->
+      <div class="tab-view" id="tab-team">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">選手一覧</div>
+            <span class="badge">ROSTER</span>
+          </div>
+          <div class="small-text" style="margin-bottom:4px;">
+            とりあえずダミーデータで一覧を作ってあるので、あとで JSON などに差し替え可能。
+          </div>
+          <div class="player-list" id="playerList">
+            <!-- JS でダミー選手を挿入 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ▼ 練習メニュー -->
+      <div class="tab-view" id="tab-training">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">練習メニュー選択</div>
+            <span class="badge">TRAINING</span>
+          </div>
+          <div class="small-text" style="margin-bottom:4px;">
+            練習を選んで「このメニューで進行」を押すと、今後ステータス変化やイベント処理を入れられる想定。
+          </div>
+          <div class="training-grid" id="trainingGrid">
+            <!-- JSで練習メニューを挿入 -->
+          </div>
+          <div class="training-footer">
+            <span>選択中：<span id="selectedTrainingName">なし</span></span>
+            <button class="btn-main" id="applyTrainingBtn">このメニューで進行</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ▼ 試合ダミー画面 -->
+      <div class="tab-view" id="tab-match">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">試合（ダミー）</div>
+            <span class="badge">GAME</span>
+          </div>
+          <div class="small-text" style="margin-bottom:4px;">
+            ここにスコアボードや試合中のコマンド（投球・采配など）を追加していく想定。
+          </div>
+
+          <div class="match-layout">
+            <div class="score-board">
+              <div class="inning-labels">
+                <span></span>
+                <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                <span>6</span><span>7</span><span>8</span><span>9</span>
+                <span>計</span>
+              </div>
+              <div class="score-row">
+                <span>自校</span>
+                <span>0</span><span>0</span><span>0</span><span>0</span><span>0</span>
+                <span>0</span><span>0</span><span>0</span><span>0</span>
+                <span>0</span>
+              </div>
+              <div class="score-row">
+                <span>相手</span>
+                <span>0</span><span>0</span><span>0</span><span>0</span><span>0</span>
+                <span>0</span><span>0</span><span>0</span><span>0</span>
+                <span>0</span>
+              </div>
+              <div class="divider"></div>
+              <div class="small-text">
+                イニング進行や結果表示などをあとからJSで制御できるようにしていく。
+              </div>
+            </div>
+            <div class="dummy-character">
+              ここに<br>ピッチャー・バッターなど<br>自作キャラの絵を表示
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===============================
+         フッター：基本行動ボタン
+         =============================== -->
+    <div class="footer-bar">
+      <div class="footer-inner">
+        <button class="footer-btn" id="btnPrevDay">前の日へ</button>
+        <button class="footer-btn primary" id="btnNextDay">進行する</button>
+        <button class="footer-btn" id="btnAuto">おまかせ</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===========================================
+    //  簡単なダミーデータ（あとで差し替え前提）
+    // ===========================================
+    const scheduleData = [
+      { day: "月", label: "練習", type: "practice", detail: "守備練習中心" },
+      { day: "火", label: "練習", type: "practice", detail: "打撃＆走塁" },
+      { day: "水", label: "イベント", type: "event", detail: "新入部員あいさつ" },
+      { day: "木", label: "練習", type: "practice", detail: "投手陣メイン" },
+      { day: "金", label: "練習", type: "practice", detail: "紅白戦" },
+      { day: "土", label: "試合", type: "match", detail: "練習試合 vs △△高校" },
+      { day: "日", label: "休み", type: "event", detail: "完全オフ" },
+    ];
+
+    const players = [
+      { name: "山田 太郎", position: "投", grade: "3年", mood: "普通" },
+      { name: "佐藤 次郎", position: "捕", grade: "3年", mood: "好調" },
+      { name: "鈴木 一郎", position: "遊", grade: "2年", mood: "絶好調" },
+      { name: "田中 花子", position: "外", grade: "2年", mood: "不調" },
+      { name: "高橋 大", position: "内", grade: "1年", mood: "普通" },
+      { name: "中村 光", position: "投", grade: "1年", mood: "普通" },
+      { name: "小林 蓮", position: "外", grade: "1年", mood: "やる気MAX" },
+    ];
+
+    const trainings = [
+      {
+        id: "batting",
+        name: "打撃強化",
+        cost: 3,
+        fatigue: "小",
+        desc: "ミート・パワー重視のメニュー。",
+      },
+      {
+        id: "defense",
+        name: "守備強化",
+        cost: 2,
+        fatigue: "小",
+        desc: "エラー減少・守備安定を狙う。",
+      },
+      {
+        id: "running",
+        name: "走塁・機動力",
+        cost: 2,
+        fatigue: "中",
+        desc: "盗塁・走塁センスアップ。",
+      },
+      {
+        id: "pitching",
+        name: "投手メニュー",
+        cost: 4,
+        fatigue: "中〜大",
+        desc: "球速・コントロール・スタミナを伸ばす。",
+      },
+    ];
+
+    let selectedTrainingId = null;
+
+    // ===========================================
+    //  タブ切り替え処理
+    // ===========================================
+    const tabButtons = document.querySelectorAll(".tab-button");
+    const tabViews = document.querySelectorAll(".tab-view");
+
+    tabButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.tab;
+
+        tabButtons.forEach((b) => b.classList.remove("active"));
+        tabViews.forEach((view) => view.classList.remove("active"));
+
+        btn.classList.add("active");
+        document.getElementById(`tab-${target}`).classList.add("active");
+      });
+    });
+
+    // ===========================================
+    //  予定リスト描画
+    // ===========================================
+    function renderSchedule() {
+      const list = document.getElementById("scheduleList");
+      list.innerHTML = "";
+
+      scheduleData.forEach((item) => {
+        const li = document.createElement("li");
+        li.className = "schedule-item";
+
+        const left = document.createElement("div");
+        left.innerHTML = `<strong>${item.day}</strong>：${item.detail}`;
+
+        const right = document.createElement("div");
+        right.innerHTML = `<span class="schedule-label ${item.type}">
+          ${item.label}
+        </span>`;
+
+        li.appendChild(left);
+        li.appendChild(right);
+        list.appendChild(li);
+      });
+    }
+
+    // ===========================================
+    //  選手リスト描画
+    // ===========================================
+    function renderPlayers() {
+      const container = document.getElementById("playerList");
+      container.innerHTML = "";
+
+      // ヘッダ行
+      const header = document.createElement("div");
+      header.className = "player-row header";
+      header.innerHTML = `
+        <div>選手</div>
+        <div>学年</div>
+        <div>ポジ</div>
+        <div>調子</div>
+      `;
+      container.appendChild(header);
+
+      // 各選手
+      players.forEach((p) => {
+        const row = document.createElement("div");
+        row.className = "player-row";
+        row.innerHTML = `
+          <div class="player-name">${p.name}</div>
+          <div class="player-grade">${p.grade}</div>
+          <div class="chip">${p.position}</div>
+          <div class="chip">${p.mood}</div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // ===========================================
+    //  練習メニュー描画
+    // ===========================================
+    function renderTrainings() {
+      const grid = document.getElementById("trainingGrid");
+      grid.innerHTML = "";
+
+      trainings.forEach((t) => {
+        const card = document.createElement("div");
+        card.className = "training-card";
+        card.dataset.id = t.id;
+        card.innerHTML = `
+          <div class="training-name">${t.name}</div>
+          <div class="training-meta">
+            <span>コスト：${t.cost}</span>
+            <span>疲労：${t.fatigue}</span>
+          </div>
+          <div class="training-desc">${t.desc}</div>
+        `;
+
+        card.addEventListener("click", () => {
+          selectedTrainingId = t.id;
+          document
+            .querySelectorAll(".training-card")
+            .forEach((c) => c.classList.remove("selected"));
+          card.classList.add("selected");
+          document.getElementById("selectedTrainingName").textContent = t.name;
+        });
+
+        grid.appendChild(card);
+      });
+    }
+
+    // ===========================================
+    //  「このメニューで進行」ボタン（今はダミー処理）
+    // ===========================================
+    document
+      .getElementById("applyTrainingBtn")
+      .addEventListener("click", () => {
+        if (!selectedTrainingId) {
+          alert("練習メニューを選択してください。");
+          return;
+        }
+        const t = trainings.find((x) => x.id === selectedTrainingId);
+        alert(
+          `「${t.name}」で進行しました。\n\n※今はダミーなので、あとでステータス変化やイベント処理を追加していけます。`
+        );
+      });
+
+    // ===========================================
+    //  日付進行ボタン（ダミー）
+    // ===========================================
+    document.getElementById("btnNextDay").addEventListener("click", () => {
+      alert("1日進行（ダミー）。\n\nここに日付・予定・イベント処理などを実装していく想定。");
+    });
+
+    document.getElementById("btnPrevDay").addEventListener("click", () => {
+      alert("前の日に戻る（ダミー）。\n\n戻すかどうか、実際の仕様に合わせてあとで調整。");
+    });
+
+    document.getElementById("btnAuto").addEventListener("click", () => {
+      alert("おまかせ進行（ダミー）。\n\nAIに任せるモードなども作れそう。");
+    });
+
+    // ===========================================
+    //  初期化
+    // ===========================================
+    function init() {
+      renderSchedule();
+      renderPlayers();
+      renderTrainings();
+    }
+
+    init();
+  </script>
+</body>
+</html>
