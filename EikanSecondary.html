@@ -7,18 +7,22 @@
 
   <style>
     /* ===============================
-       全体レイアウト・共通スタイル
+       カラーテーマ（野球場イメージ）
        =============================== */
     :root {
-      --bg-main: #0b1a2f;
-      --bg-panel: #13243d;
-      --accent: #ffcc33;
-      --accent-soft: #ffd966;
+      --bg-main: #04141d;        /* 濃いナイター空 */
+      --bg-panel: #0b2530;       /* スコアボード風パネル */
+      --accent: #f5c453;         /* ファウルラインぽい黄 */
+      --accent-soft: #ffdf88;
       --text-main: #f7f7f7;
-      --text-sub: #c0c6d7;
-      --danger: #ff6666;
-      --success: #6be38a;
-      --border-soft: #243954;
+      --text-sub: #c0cfdc;
+      --danger: #ff6b6b;
+      --success: #72e28c;
+      --border-soft: #184050;
+      --slot-frame: #f5c453;
+      --slot-inner: #05291a;     /* 芝生っぽい深緑 */
+      --overlay-bg: rgba(0, 0, 0, 0.55);
+      --confirm-bg: #15653a;     /* 緑の確認ボックス */
     }
 
     * {
@@ -29,7 +33,7 @@
 
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #1b3358 0, #050811 55%);
+      background: radial-gradient(circle at top, #10445b 0, #020509 60%);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
@@ -38,10 +42,11 @@
 
     .app {
       width: 100%;
-      max-width: 600px; /* スマホ〜タブレット想定 */
+      max-width: 600px;
       padding: 10px 10px 16px;
     }
 
+    /* 共通カード */
     .card {
       background: var(--bg-panel);
       border-radius: 10px;
@@ -86,7 +91,298 @@
     }
 
     /* ===============================
-       ヘッダー
+       画面切り替え
+       =============================== */
+    .screen {
+      display: none;
+    }
+    .screen.active {
+      display: block;
+    }
+
+    /* ===============================
+       ホーム画面：セーブスロット選択
+       =============================== */
+    .save-screen-title {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .save-main-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      margin-bottom: 4px;
+    }
+
+    .save-sub-title {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+    }
+
+    .slot-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .slot-item {
+      position: relative;
+      border-radius: 12px;
+      border: 2px solid var(--slot-frame);
+      padding: 8px 10px;
+      background:
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.4)),
+        var(--slot-inner);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 6px 0 rgba(0, 0, 0, 0.6);
+      transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, background 0.1s;
+    }
+
+    .slot-item:active {
+      transform: translateY(2px);
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    .slot-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.9rem;
+      background: rgba(0, 0, 0, 0.45);
+    }
+
+    .slot-text {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .slot-label-main {
+      font-size: 0.85rem;
+    }
+
+    .slot-label-sub {
+      font-size: 0.7rem;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+
+    .slot-empty .slot-label-main {
+      color: var(--text-sub);
+      font-style: italic;
+    }
+
+    .slot-meta-tag {
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      margin-top: 2px;
+      align-self: flex-start;
+      opacity: 0.9;
+    }
+
+    /* ===============================
+       スロット選択時の確認オーバーレイ
+       =============================== */
+    .slot-confirm-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--overlay-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease-out;
+    }
+
+    .slot-confirm-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .slot-confirm-box {
+      width: 86%;
+      max-width: 420px;
+      background: var(--confirm-bg);
+      border-radius: 14px;
+      border: 2px solid var(--accent-soft);
+      padding: 12px 12px 10px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+    }
+
+    .slot-confirm-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .slot-confirm-message {
+      font-size: 0.8rem;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+    .slot-confirm-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .btn-confirm {
+      flex: 1;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      padding: 8px 0;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.5);
+      transition: transform 0.05s ease-out, box-shadow 0.05s ease-out;
+    }
+
+    .btn-confirm:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-yes {
+      background: var(--accent-soft);
+      color: #2b1600;
+    }
+
+    .btn-no {
+      background: #0f2b1b;
+      color: var(--text-main);
+    }
+
+    /* ===============================
+       初期設定画面
+       =============================== */
+    .setting-row {
+      margin-bottom: 8px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border-width: 2px;
+      border-style: solid;
+      background: rgba(0, 0, 0, 0.35);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .setting-row.clickable {
+      cursor: pointer;
+    }
+
+    .setting-row.school {
+      border-color: #ff6b7a;  /* 赤系 */
+    }
+    .setting-row.pref {
+      border-color: #ff8fe6;  /* ピンク系 */
+    }
+    .setting-row.manager {
+      border-color: #6bb5ff;  /* 青系 */
+    }
+
+    .setting-label {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+    }
+
+    .setting-value {
+      flex: 1;
+      text-align: right;
+      font-size: 0.85rem;
+      font-weight: 600;
+      word-break: break-all;
+    }
+
+    .setting-hint {
+      font-size: 0.7rem;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+
+    .setting-manager-image {
+      margin-top: 10px;
+      padding: 6px;
+      border-radius: 12px;
+      border: 2px solid #4ade80; /* 緑枠 */
+      background: rgba(7, 44, 23, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .setting-manager-image img {
+      max-width: 100%;
+      max-height: 180px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .initial-start-btn {
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .initial-start-btn[disabled] {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    /* 都道府県選択オーバーレイ */
+    .pref-list {
+      margin-top: 6px;
+      max-height: 260px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .pref-option {
+      width: 100%;
+      text-align: left;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 0, 0, 0.3);
+      padding: 6px 8px;
+      font-size: 0.8rem;
+      background: #0b3423;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .pref-option span {
+      display: block;
+    }
+
+    .pref-option-main {
+      font-weight: 600;
+    }
+
+    .pref-option-sub {
+      font-size: 0.7rem;
+      color: var(--text-sub);
+    }
+
+    /* ===============================
+       ゲーム本編ヘッダー＆タブ
        =============================== */
     .game-header {
       display: flex;
@@ -128,9 +424,6 @@
       gap: 4px;
     }
 
-    /* ===============================
-       タブメニュー
-       =============================== */
     .tab-bar {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -157,9 +450,6 @@
       border-color: transparent;
     }
 
-    /* ===============================
-       メインコンテンツ領域
-       =============================== */
     .main-view {
       margin-top: 10px;
     }
@@ -184,27 +474,21 @@
       }
     }
 
-    /* ===============================
-       ホーム（予定・イベント）
-       =============================== */
+    /* 予定 */
     .calendar-row {
       display: flex;
       gap: 6px;
     }
-
     .calendar-main {
       flex: 2;
     }
-
     .calendar-side {
       flex: 1.2;
     }
-
     .schedule-list {
       list-style: none;
       font-size: 0.8rem;
     }
-
     .schedule-item {
       display: flex;
       justify-content: space-between;
@@ -212,55 +496,45 @@
       padding: 4px 0;
       border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
     }
-
     .schedule-item:last-child {
       border-bottom: none;
     }
-
     .schedule-label {
       font-size: 0.65rem;
       padding: 1px 5px;
       border-radius: 999px;
     }
-
     .schedule-label.practice {
       background: rgba(107, 227, 138, 0.16);
       color: var(--success);
       border: 1px solid rgba(107, 227, 138, 0.5);
     }
-
     .schedule-label.match {
-      background: rgba(255, 102, 102, 0.16);
+      background: rgba(255, 107, 107, 0.16);
       color: var(--danger);
-      border: 1px solid rgba(255, 102, 102, 0.5);
+      border: 1px solid rgba(255, 107, 107, 0.5);
     }
-
     .schedule-label.event {
-      background: rgba(255, 204, 51, 0.16);
+      background: rgba(245, 196, 83, 0.16);
       color: var(--accent-soft);
-      border: 1px solid rgba(255, 204, 51, 0.5);
+      border: 1px solid rgba(245, 196, 83, 0.5);
     }
-
     .resource-row {
       display: flex;
       justify-content: space-between;
       font-size: 0.8rem;
     }
-
     .resource-value {
       font-weight: 700;
       color: var(--accent-soft);
     }
 
-    /* ===============================
-       チーム・選手一覧
-       =============================== */
+    /* チーム・選手一覧 */
     .player-list {
       max-height: 260px;
       overflow-y: auto;
       padding-right: 4px;
     }
-
     .player-row {
       display: grid;
       grid-template-columns: 1.6fr 0.7fr 0.7fr 0.9fr;
@@ -270,7 +544,6 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.06);
       align-items: center;
     }
-
     .player-row.header {
       font-weight: 700;
       font-size: 0.7rem;
@@ -278,11 +551,9 @@
       color: var(--text-sub);
       border-bottom-color: rgba(255, 255, 255, 0.18);
     }
-
     .player-name {
       font-weight: 600;
     }
-
     .player-grade {
       font-size: 0.7rem;
       padding: 2px 4px;
@@ -290,7 +561,6 @@
       border: 1px solid rgba(255, 255, 255, 0.12);
       text-align: center;
     }
-
     .chip {
       display: inline-flex;
       align-items: center;
@@ -301,15 +571,12 @@
       border: 1px solid rgba(255, 255, 255, 0.14);
     }
 
-    /* ===============================
-       練習メニュー
-       =============================== */
+    /* 練習メニュー */
     .training-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 6px;
     }
-
     .training-card {
       background: rgba(0, 0, 0, 0.25);
       border-radius: 8px;
@@ -318,30 +585,25 @@
       font-size: 0.75rem;
       cursor: pointer;
     }
-
     .training-card.selected {
       border-color: var(--accent);
       box-shadow: 0 0 0 1px rgba(255, 204, 51, 0.6);
     }
-
     .training-name {
       font-weight: 700;
       margin-bottom: 2px;
     }
-
     .training-meta {
       display: flex;
       justify-content: space-between;
       font-size: 0.7rem;
       color: var(--text-sub);
     }
-
     .training-desc {
       font-size: 0.7rem;
       margin-top: 2px;
       color: var(--text-sub);
     }
-
     .training-footer {
       margin-top: 6px;
       display: flex;
@@ -349,7 +611,6 @@
       align-items: center;
       font-size: 0.7rem;
     }
-
     .btn-main {
       border: none;
       border-radius: 999px;
@@ -360,30 +621,24 @@
       color: #2f1a00;
       cursor: pointer;
     }
-
     .btn-main:active {
       transform: translateY(1px);
     }
 
-    /* ===============================
-       試合画面（ダミー）
-       =============================== */
+    /* 試合画面（ダミー） */
     .match-layout {
       display: grid;
       grid-template-columns: 1.2fr 1fr;
       gap: 8px;
     }
-
     .score-board {
       font-size: 0.8rem;
     }
-
     .score-row {
       display: flex;
       justify-content: space-between;
       padding: 2px 0;
     }
-
     .inning-labels {
       display: flex;
       justify-content: space-between;
@@ -391,7 +646,6 @@
       margin-bottom: 2px;
       color: var(--text-sub);
     }
-
     .dummy-character {
       background: rgba(0, 0, 0, 0.3);
       border-radius: 8px;
@@ -405,9 +659,7 @@
       padding: 6px;
     }
 
-    /* ===============================
-       フッターバー（ターンボタンなど）
-       =============================== */
+    /* フッター（ターンボタン） */
     .footer-bar {
       position: sticky;
       bottom: 0;
@@ -415,12 +667,10 @@
       background: linear-gradient(to top, #050811, transparent);
       padding-top: 6px;
     }
-
     .footer-inner {
       display: flex;
       gap: 6px;
     }
-
     .footer-btn {
       flex: 1;
       border-radius: 999px;
@@ -432,7 +682,6 @@
       text-align: center;
       cursor: pointer;
     }
-
     .footer-btn.primary {
       background: var(--accent);
       color: #2f1a00;
@@ -440,7 +689,7 @@
       border-color: transparent;
     }
 
-    /* スクロールバー（見た目だけ少し整える） */
+    /* スクロールバー */
     ::-webkit-scrollbar {
       width: 4px;
     }
@@ -455,181 +704,270 @@
 </head>
 <body>
   <div class="app">
-    <!-- ===============================
-         ヘッダー：校名・年度・日付など
-         =============================== -->
-    <div class="card">
-      <div class="game-header">
-        <div class="game-title-row">
-          <div class="game-title">栄冠セカンダリー</div>
-          <div class="season-label" id="seasonLabel">西暦 20XX 年度</div>
-        </div>
-        <div class="info-row">
-          <span>高校名：<strong id="schoolName">○○高校</strong></span>
-          <span>現在：<span id="currentDateText">春・4月1週</span></span>
-        </div>
-        <div class="info-row">
-          <span>世代：<span id="generationText">1 代目</span></span>
-          <span>評判：<span id="reputationText">そこそこ</span></span>
-        </div>
-      </div>
 
-      <!-- タブバー -->
-      <div class="tab-bar">
-        <button class="tab-button active" data-tab="home">予定</button>
-        <button class="tab-button" data-tab="team">チーム</button>
-        <button class="tab-button" data-tab="training">練習</button>
-        <button class="tab-button" data-tab="match">試合</button>
+    <!-- ===============================
+         ホーム画面：セーブスロット選択
+         =============================== -->
+    <div id="saveScreen" class="screen active">
+      <div class="card">
+        <div class="save-screen-title">
+          <div class="save-main-title">EIKAN SECONDARY</div>
+          <div class="save-sub-title">セーブデータを選んでください</div>
+        </div>
+
+        <div class="slot-list" id="slotList">
+          <!-- JSで5スロット分を生成 -->
+        </div>
       </div>
     </div>
 
-    <!-- ===============================
-         メインビュー：タブごとの画面
-         =============================== -->
-    <div class="main-view">
-
-      <!-- ▼ 予定 / ホーム画面 -->
-      <div class="tab-view active" id="tab-home">
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">今週の予定</div>
-            <span class="badge">CALENDAR</span>
-          </div>
-          <div class="calendar-row">
-            <div class="calendar-main">
-              <ul class="schedule-list" id="scheduleList">
-                <!-- JSでダミー予定を挿入 -->
-              </ul>
-            </div>
-            <div class="calendar-side">
-              <div class="small-text">次のイベント</div>
-              <div id="nextEventText" style="font-size:0.8rem; margin-top:2px;">
-                夏大会1回戦まで 10 日
-              </div>
-              <div class="divider"></div>
-              <div class="small-text">リソース</div>
-              <div class="resource-row" style="margin-top:2px;">
-                <span>体力：</span>
-                <span class="resource-value" id="staminaText">やや多い</span>
-              </div>
-              <div class="resource-row">
-                <span>やる気：</span>
-                <span class="resource-value" id="moraleText">普通</span>
-              </div>
-              <div class="resource-row">
-                <span>ポイント：</span>
-                <span class="resource-value" id="pointText">25</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">メモ</div>
-            <span class="badge">MEMO</span>
-          </div>
-          <div class="small-text">
-            ここに「今年の目標」や「育成方針」などを書けるように、あとでメモ機能をつけてもOK。
-          </div>
+    <!-- スロット確認オーバーレイ -->
+    <div id="slotConfirmOverlay" class="slot-confirm-overlay">
+      <div class="slot-confirm-box">
+        <div class="slot-confirm-title" id="slotConfirmTitle"></div>
+        <div class="slot-confirm-message" id="slotConfirmMessage"></div>
+        <div class="slot-confirm-buttons">
+          <button class="btn-confirm btn-yes" id="slotConfirmYes">はい</button>
+          <button class="btn-confirm btn-no" id="slotConfirmNo">いいえ</button>
         </div>
       </div>
+    </div>
 
-      <!-- ▼ チーム / 選手一覧 -->
-      <div class="tab-view" id="tab-team">
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">選手一覧</div>
-            <span class="badge">ROSTER</span>
-          </div>
-          <div class="small-text" style="margin-bottom:4px;">
-            とりあえずダミーデータで一覧を作ってあるので、あとで JSON などに差し替え可能。
-          </div>
-          <div class="player-list" id="playerList">
-            <!-- JS でダミー選手を挿入 -->
-          </div>
-        </div>
-      </div>
-
-      <!-- ▼ 練習メニュー -->
-      <div class="tab-view" id="tab-training">
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">練習メニュー選択</div>
-            <span class="badge">TRAINING</span>
-          </div>
-          <div class="small-text" style="margin-bottom:4px;">
-            練習を選んで「このメニューで進行」を押すと、今後ステータス変化やイベント処理を入れられる想定。
-          </div>
-          <div class="training-grid" id="trainingGrid">
-            <!-- JSで練習メニューを挿入 -->
-          </div>
-          <div class="training-footer">
-            <span>選択中：<span id="selectedTrainingName">なし</span></span>
-            <button class="btn-main" id="applyTrainingBtn">このメニューで進行</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ▼ 試合ダミー画面 -->
-      <div class="tab-view" id="tab-match">
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">試合（ダミー）</div>
-            <span class="badge">GAME</span>
-          </div>
-          <div class="small-text" style="margin-bottom:4px;">
-            ここにスコアボードや試合中のコマンド（投球・采配など）を追加していく想定。
-          </div>
-
-          <div class="match-layout">
-            <div class="score-board">
-              <div class="inning-labels">
-                <span></span>
-                <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                <span>6</span><span>7</span><span>8</span><span>9</span>
-                <span>計</span>
-              </div>
-              <div class="score-row">
-                <span>自校</span>
-                <span>0</span><span>0</span><span>0</span><span>0</span><span>0</span>
-                <span>0</span><span>0</span><span>0</span><span>0</span>
-                <span>0</span>
-              </div>
-              <div class="score-row">
-                <span>相手</span>
-                <span>0</span><span>0</span><span>0</span><span>0</span><span>0</span>
-                <span>0</span><span>0</span><span>0</span><span>0</span>
-                <span>0</span>
-              </div>
-              <div class="divider"></div>
-              <div class="small-text">
-                イニング進行や結果表示などをあとからJSで制御できるようにしていく。
-              </div>
-            </div>
-            <div class="dummy-character">
-              ここに<br>ピッチャー・バッターなど<br>自作キャラの絵を表示
-            </div>
-          </div>
+    <!-- 都道府県選択オーバーレイ -->
+    <div id="prefOverlay" class="slot-confirm-overlay">
+      <div class="slot-confirm-box">
+        <div class="slot-confirm-title">都道府県を選択</div>
+        <div class="pref-list" id="prefList">
+          <!-- JSで都道府県を生成 -->
         </div>
       </div>
     </div>
 
     <!-- ===============================
-         フッター：基本行動ボタン
+         初期設定画面
          =============================== -->
-    <div class="footer-bar">
-      <div class="footer-inner">
-        <button class="footer-btn" id="btnPrevDay">前の日へ</button>
-        <button class="footer-btn primary" id="btnNextDay">進行する</button>
-        <button class="footer-btn" id="btnAuto">おまかせ</button>
+    <div id="initialSettingsScreen" class="screen">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">初期設定</div>
+          <span class="badge">SETUP</span>
+        </div>
+        <div class="small-text" style="margin-bottom:8px;">
+          高校名・都道府県・監督名を決めてから「はじめる」を押してください。
+        </div>
+
+        <div class="setting-row school clickable" id="settingSchoolRow">
+          <div>
+            <div class="setting-label">高校名</div>
+            <div class="setting-hint">タップして高校名を入力</div>
+          </div>
+          <div class="setting-value" id="settingSchoolValue">○○高校</div>
+        </div>
+
+        <div class="setting-row pref clickable" id="settingPrefRow">
+          <div>
+            <div class="setting-label">都道府県</div>
+            <div class="setting-hint">タップして選択</div>
+          </div>
+          <div class="setting-value" id="settingPrefValue">未選択</div>
+        </div>
+
+        <div class="setting-row manager clickable" id="settingManagerRow">
+          <div>
+            <div class="setting-label">監督名</div>
+            <div class="setting-hint">タップして監督名を入力</div>
+          </div>
+          <div class="setting-value" id="settingManagerValue">監督</div>
+        </div>
+
+        <div class="setting-manager-image">
+          <!-- E監督.png は同じフォルダに置いておく想定 -->
+          <img src="E監督.png" alt="監督イメージ">
+        </div>
+
+        <button class="btn-main initial-start-btn" id="btnInitialStart" disabled>はじめる</button>
+      </div>
+    </div>
+
+    <!-- ===============================
+         ゲーム本編画面（最初は非表示）
+         =============================== -->
+    <div id="gameScreen" class="screen">
+      <div class="card">
+        <div class="game-header">
+          <div class="game-title-row">
+            <div class="game-title">栄冠セカンダリー</div>
+            <div class="season-label" id="seasonLabel">西暦 20XX 年度</div>
+          </div>
+          <div class="info-row">
+            <span>高校名：<strong id="schoolName">○○高校</strong></span>
+            <span>現在：<span id="currentDateText">春・4月1週</span></span>
+          </div>
+          <div class="info-row">
+            <span>世代：<span id="generationText">1 代目</span></span>
+            <span>評判：<span id="reputationText">そこそこ</span></span>
+          </div>
+        </div>
+
+        <!-- タブバー -->
+        <div class="tab-bar">
+          <button class="tab-button active" data-tab="home">予定</button>
+          <button class="tab-button" data-tab="team">チーム</button>
+          <button class="tab-button" data-tab="training">練習</button>
+          <button class="tab-button" data-tab="match">試合</button>
+        </div>
+      </div>
+
+      <!-- メインビュー：タブごとの画面 -->
+      <div class="main-view">
+        <!-- ▼ 予定 / ホーム画面 -->
+        <div class="tab-view active" id="tab-home">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">今週の予定</div>
+              <span class="badge">CALENDAR</span>
+            </div>
+            <div class="calendar-row">
+              <div class="calendar-main">
+                <ul class="schedule-list" id="scheduleList">
+                  <!-- JSで予定を挿入 -->
+                </ul>
+              </div>
+              <div class="calendar-side">
+                <div class="small-text">次のイベント</div>
+                <div id="nextEventText" style="font-size:0.8rem; margin-top:2px;">
+                  夏大会1回戦まで 10 日
+                </div>
+                <div class="divider"></div>
+                <div class="small-text">リソース</div>
+                <div class="resource-row" style="margin-top:2px;">
+                  <span>体力：</span>
+                  <span class="resource-value" id="staminaText">やや多い</span>
+                </div>
+                <div class="resource-row">
+                  <span>やる気：</span>
+                  <span class="resource-value" id="moraleText">普通</span>
+                </div>
+                <div class="resource-row">
+                  <span>ポイント：</span>
+                  <span class="resource-value" id="pointText">25</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">メモ</div>
+              <span class="badge">MEMO</span>
+            </div>
+            <div class="small-text">
+              ここに「今年の目標」や「育成方針」などを書けるように、あとでメモ機能をつけてもOK。
+            </div>
+          </div>
+        </div>
+
+        <!-- ▼ チーム / 選手一覧 -->
+        <div class="tab-view" id="tab-team">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">選手一覧</div>
+              <span class="badge">ROSTER</span>
+            </div>
+            <div class="small-text" style="margin-bottom:4px;">
+              とりあえずダミーデータで一覧を作ってあるので、あとで JSON などに差し替え可能。
+            </div>
+            <div class="player-list" id="playerList">
+              <!-- JS でダミー選手を挿入 -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ▼ 練習メニュー -->
+        <div class="tab-view" id="tab-training">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">練習メニュー選択</div>
+              <span class="badge">TRAINING</span>
+            </div>
+            <div class="small-text" style="margin-bottom:4px;">
+              練習を選んで「このメニューで進行」を押すと、今後ステータス変化やイベント処理を入れられる想定。
+            </div>
+            <div class="training-grid" id="trainingGrid">
+              <!-- JSで練習メニューを挿入 -->
+            </div>
+            <div class="training-footer">
+              <span>選択中：<span id="selectedTrainingName">なし</span></span>
+              <button class="btn-main" id="applyTrainingBtn">このメニューで進行</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ▼ 試合ダミー画面 -->
+        <div class="tab-view" id="tab-match">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">試合（ダミー）</div>
+              <span class="badge">GAME</span>
+            </div>
+            <div class="small-text" style="margin-bottom:4px;">
+              ここにスコアボードや試合中のコマンド（投球・采配など）を追加していく想定。
+            </div>
+
+            <div class="match-layout">
+              <div class="score-board">
+                <div class="inning-labels">
+                  <span></span>
+                  <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
+                  <span>6</span><span>7</span><span>8</span><span>9</span>
+                  <span>計</span>
+                </div>
+                <div class="score-row">
+                  <span>自校</span>
+                  <span>0</span><span>0</span><span>0</span><span>0</span><span>0</span>
+                  <span>0</span><span>0</span><span>0</span><span>0</span>
+                  <span>0</span>
+                </div>
+                <div class="score-row">
+                  <span>相手</span>
+                  <span>0</span><span>0</span><span>0</span><span>0</span><span>0</span>
+                  <span>0</span><span>0</span><span>0</span><span>0</span>
+                  <span>0</span>
+                </div>
+                <div class="divider"></div>
+                <div class="small-text">
+                  イニング進行や結果表示などをあとからJSで制御できるようにしていく。
+                </div>
+              </div>
+              <div class="dummy-character">
+                ここに<br>ピッチャー・バッターなど<br>自作キャラの絵を表示
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- フッターボタン -->
+      <div class="footer-bar">
+        <div class="footer-inner">
+          <button class="footer-btn" id="btnPrevDay">前の日へ</button>
+          <button class="footer-btn primary" id="btnNextDay">進行する</button>
+          <button class="footer-btn" id="btnAuto">おまかせ</button>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
     // ===========================================
-    //  簡単なダミーデータ（あとで差し替え前提）
+    //  ユーティリティ：ディープコピー
+    // ===========================================
+    function deepClone(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    // ===========================================
+    //  ダミーデータ類（予定・選手・練習）
     // ===========================================
     const scheduleData = [
       { day: "月", label: "練習", type: "practice", detail: "守備練習中心" },
@@ -652,37 +990,357 @@
     ];
 
     const trainings = [
-      {
-        id: "batting",
-        name: "打撃強化",
-        cost: 3,
-        fatigue: "小",
-        desc: "ミート・パワー重視のメニュー。",
-      },
-      {
-        id: "defense",
-        name: "守備強化",
-        cost: 2,
-        fatigue: "小",
-        desc: "エラー減少・守備安定を狙う。",
-      },
-      {
-        id: "running",
-        name: "走塁・機動力",
-        cost: 2,
-        fatigue: "中",
-        desc: "盗塁・走塁センスアップ。",
-      },
-      {
-        id: "pitching",
-        name: "投手メニュー",
-        cost: 4,
-        fatigue: "中〜大",
-        desc: "球速・コントロール・スタミナを伸ばす。",
-      },
+      { id: "batting",  name: "打撃強化",     cost: 3, fatigue: "小",     desc: "ミート・パワー重視のメニュー。" },
+      { id: "defense",  name: "守備強化",     cost: 2, fatigue: "小",     desc: "エラー減少・守備安定を狙う。" },
+      { id: "running",  name: "走塁・機動力", cost: 2, fatigue: "中",     desc: "盗塁・走塁センスアップ。" },
+      { id: "pitching", name: "投手メニュー", cost: 4, fatigue: "中〜大", desc: "球速・コントロール・スタミナを伸ばす。" },
     ];
 
-    let selectedTrainingId = null;
+    // ===========================================
+    //  都道府県データ（強さ付き）
+    // ===========================================
+    const PREFS = [
+      { id: "hokkaido", label: "北海道", stars: "☆☆★★★" },
+      { id: "aomori",   label: "青森県", stars: "☆☆☆★★" },
+      { id: "iwate",    label: "岩手県", stars: "☆☆☆★★" },
+      { id: "miyagi",   label: "宮城県", stars: "☆☆★★★" },
+      { id: "akita",    label: "秋田県", stars: "☆☆☆★★" },
+      { id: "yamagata", label: "山形県", stars: "☆☆☆☆★" },
+      { id: "fukushima",label: "福島県", stars: "☆☆☆★★" },
+      { id: "ibaraki",  label: "茨城県", stars: "☆☆★★★" },
+      { id: "tochigi",  label: "栃木県", stars: "☆☆★★★" },
+      { id: "gunma",    label: "群馬県", stars: "☆☆★★★" },
+      { id: "saitama",  label: "埼玉県", stars: "☆☆★★★" },
+      { id: "chiba",    label: "千葉県", stars: "☆★★★★" },
+      { id: "tokyo",    label: "東京都", stars: "★★★★★" },
+      { id: "kanagawa", label: "神奈川県", stars: "★★★★★" },
+      { id: "niigata",  label: "新潟県", stars: "☆☆☆☆★" },
+      { id: "toyama",   label: "富山県", stars: "☆☆☆☆★" },
+      { id: "ishikawa", label: "石川県", stars: "☆☆☆★★" },
+      { id: "fukui",    label: "福井県", stars: "☆☆★★★" },
+      { id: "yamanashi",label: "山梨県", stars: "☆☆☆★★" },
+      { id: "nagano",   label: "長野県", stars: "☆☆☆★★" },
+      { id: "gifu",     label: "岐阜県", stars: "☆☆★★★" },
+      { id: "shizuoka", label: "静岡県", stars: "☆☆★★★" },
+      { id: "aichi",    label: "愛知県", stars: "★★★★★" },
+      { id: "mie",      label: "三重県", stars: "☆☆☆★★" },
+      { id: "shiga",    label: "滋賀県", stars: "☆☆☆★★" },
+      { id: "kyoto",    label: "京都府", stars: "☆★★★★" },
+      { id: "osaka",    label: "大阪府", stars: "★★★★★" },
+      { id: "hyogo",    label: "兵庫県", stars: "★★★★★" },
+      { id: "nara",     label: "奈良県", stars: "☆★★★★" },
+      { id: "wakayama", label: "和歌山県", stars: "★★★★★" },
+      { id: "tottori",  label: "鳥取県", stars: "☆☆☆★★" },
+      { id: "shimane",  label: "島根県", stars: "☆☆☆★★" },
+      { id: "okayama",  label: "岡山県", stars: "☆☆★★★" },
+      { id: "hiroshima",label: "広島県", stars: "☆★★★★" },
+      { id: "yamaguchi",label: "山口県", stars: "☆☆★★★" },
+      { id: "tokushima",label: "徳島県", stars: "☆☆★★★" },
+      { id: "kagawa",   label: "香川県", stars: "☆☆★★★" },
+      { id: "ehime",    label: "愛媛県", stars: "☆★★★★" },
+      { id: "kochi",    label: "高知県", stars: "☆★★★★" },
+      { id: "fukuoka",  label: "福岡県", stars: "☆★★★★" },
+      { id: "saga",     label: "佐賀県", stars: "☆☆☆☆★" },
+      { id: "nagasaki", label: "長崎県", stars: "☆☆☆★★" },
+      { id: "kumamoto", label: "熊本県", stars: "☆☆☆★★" },  // 未指定 → 中堅扱い
+      { id: "oita",     label: "大分県", stars: "☆☆★★★" },
+      { id: "miyazaki", label: "宮崎県", stars: "☆☆☆★★" },
+      { id: "kagoshima",label: "鹿児島県", stars: "☆☆★★★" },
+      { id: "okinawa",  label: "沖縄県", stars: "☆☆☆★★" }   // 未指定 → 中堅扱い
+    ];
+
+    // ===========================================
+    //  セーブスロット管理（localStorage）
+    // ===========================================
+    const SAVE_KEY = "eikanSecondarySaveSlots_v1";
+    const EMPTY_MESSAGE = "まだ記録がないよ";
+
+    let currentGameState = null;   // {slotIndex, schoolName, ...}
+    let currentSlotIndex = null;   // 0〜4
+    let saveSlots = [null, null, null, null, null];
+
+    function loadSaveSlots() {
+      try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length === 5) {
+          saveSlots = parsed;
+        }
+      } catch (e) {
+        console.warn("セーブデータ読み込みエラー", e);
+      }
+    }
+
+    function saveSaveSlots() {
+      try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(saveSlots));
+      } catch (e) {
+        console.warn("セーブデータ保存エラー", e);
+      }
+    }
+
+    function createNewGameState(slotIndex) {
+      return {
+        slotIndex,
+        schoolName: "○○高校",
+        yearCount: 1,
+        month: 4,
+        day: 1,
+        seasonLabel: "西暦 20XX 年度",
+        generation: "1 代目",
+        reputation: "そこそこ",
+        prefecture: null,
+        prefectureStars: null,
+        managerName: "監督",
+      };
+    }
+
+    function gameStateToLabel(state) {
+      if (!state) return EMPTY_MESSAGE;
+      return `${state.schoolName}｜${state.yearCount}年目｜${state.month}月${state.day}日`;
+    }
+
+    // ===========================================
+    //  ホーム画面：スロット描画
+    // ===========================================
+    function renderSaveSlots() {
+      const list = document.getElementById("slotList");
+      list.innerHTML = "";
+
+      saveSlots.forEach((slot, idx) => {
+        const item = document.createElement("div");
+        item.className = "slot-item" + (slot ? "" : " slot-empty");
+        item.dataset.index = idx.toString();
+
+        const number = document.createElement("div");
+        number.className = "slot-number";
+        number.textContent = (idx + 1).toString();
+
+        const textWrap = document.createElement("div");
+        textWrap.className = "slot-text";
+
+        const main = document.createElement("div");
+        main.className = "slot-label-main";
+        main.textContent = slot ? gameStateToLabel(slot) : EMPTY_MESSAGE;
+
+        textWrap.appendChild(main);
+
+        if (slot) {
+          const tag = document.createElement("div");
+          tag.className = "slot-meta-tag";
+          tag.textContent = "セーブ済み";
+          textWrap.appendChild(tag);
+        } else {
+          const sub = document.createElement("div");
+          sub.className = "slot-label-sub";
+          sub.textContent = "タップして新しい記録を作成";
+          textWrap.appendChild(sub);
+        }
+
+        item.appendChild(number);
+        item.appendChild(textWrap);
+
+        item.addEventListener("click", () => onSlotClick(idx, slot));
+        list.appendChild(item);
+      });
+    }
+
+    // ===========================================
+    //  スロットクリック → 確認ダイアログ
+    // ===========================================
+    const slotConfirmOverlay = document.getElementById("slotConfirmOverlay");
+    const slotConfirmTitleEl = document.getElementById("slotConfirmTitle");
+    const slotConfirmMessageEl = document.getElementById("slotConfirmMessage");
+    const slotConfirmYesBtn = document.getElementById("slotConfirmYes");
+    const slotConfirmNoBtn = document.getElementById("slotConfirmNo");
+
+    let pendingSlotIndex = null;
+    let pendingSlotState = null;
+
+    function onSlotClick(index, slotState) {
+      pendingSlotIndex = index;
+      pendingSlotState = slotState || null;
+
+      if (slotState) {
+        slotConfirmTitleEl.textContent = `スロット ${index + 1}`;
+        slotConfirmMessageEl.innerHTML =
+          `${gameStateToLabel(slotState)}<br>この記録を始めますか？`;
+      } else {
+        slotConfirmTitleEl.textContent = `スロット ${index + 1}`;
+        slotConfirmMessageEl.textContent = "新しい記録を作りますか？";
+      }
+
+      slotConfirmOverlay.classList.add("active");
+    }
+
+    slotConfirmYesBtn.addEventListener("click", () => {
+      slotConfirmOverlay.classList.remove("active");
+      if (pendingSlotIndex == null) return;
+
+      if (!pendingSlotState) {
+        // 新規作成 → 初期設定画面へ
+        currentSlotIndex = pendingSlotIndex;
+        currentGameState = createNewGameState(pendingSlotIndex);
+        showInitialSettingsScreen();
+      } else {
+        // 既存データ読み込み → そのままゲーム画面へ
+        currentGameState = deepClone(pendingSlotState);
+        currentSlotIndex = pendingSlotIndex;
+        applyGameStateToUI(currentGameState);
+        showGameScreen();
+        renderSaveSlots();
+      }
+    });
+
+    slotConfirmNoBtn.addEventListener("click", () => {
+      slotConfirmOverlay.classList.remove("active");
+      pendingSlotIndex = null;
+      pendingSlotState = null;
+    });
+
+    // ===========================================
+    //  初期設定画面関連
+    // ===========================================
+    const saveScreenEl = document.getElementById("saveScreen");
+    const initialSettingsScreenEl = document.getElementById("initialSettingsScreen");
+    const gameScreenEl = document.getElementById("gameScreen");
+
+    const settingSchoolValueEl = document.getElementById("settingSchoolValue");
+    const settingPrefValueEl = document.getElementById("settingPrefValue");
+    const settingManagerValueEl = document.getElementById("settingManagerValue");
+    const btnInitialStart = document.getElementById("btnInitialStart");
+
+    const settingSchoolRow = document.getElementById("settingSchoolRow");
+    const settingPrefRow = document.getElementById("settingPrefRow");
+    const settingManagerRow = document.getElementById("settingManagerRow");
+
+    const prefOverlay = document.getElementById("prefOverlay");
+    const prefListEl = document.getElementById("prefList");
+
+    function showInitialSettingsScreen() {
+      saveScreenEl.classList.remove("active");
+      gameScreenEl.classList.remove("active");
+      initialSettingsScreenEl.classList.add("active");
+
+      if (!currentGameState) {
+        currentGameState = createNewGameState(currentSlotIndex ?? 0);
+      }
+
+      // フィールド反映
+      settingSchoolValueEl.textContent = currentGameState.schoolName || "○○高校";
+
+      if (currentGameState.prefecture && currentGameState.prefectureStars) {
+        settingPrefValueEl.textContent =
+          `${currentGameState.prefecture}｜強さ${currentGameState.prefectureStars}`;
+      } else {
+        settingPrefValueEl.textContent = "未選択";
+      }
+
+      settingManagerValueEl.textContent = currentGameState.managerName || "監督";
+
+      updateInitialStartButton();
+    }
+
+    function updateInitialStartButton() {
+      const ready =
+        currentGameState &&
+        currentGameState.schoolName &&
+        currentGameState.managerName &&
+        currentGameState.prefecture &&
+        currentGameState.prefectureStars;
+
+      btnInitialStart.disabled = !ready;
+    }
+
+    // 高校名入力
+    settingSchoolRow.addEventListener("click", () => {
+      if (!currentGameState) return;
+      const name = window.prompt("高校名を入力してください", currentGameState.schoolName || "");
+      if (name && name.trim().length > 0) {
+        currentGameState.schoolName = name.trim();
+        settingSchoolValueEl.textContent = currentGameState.schoolName;
+        updateInitialStartButton();
+      }
+    });
+
+    // 監督名入力
+    settingManagerRow.addEventListener("click", () => {
+      if (!currentGameState) return;
+      const name = window.prompt("監督名を入力してください", currentGameState.managerName || "");
+      if (name && name.trim().length > 0) {
+        currentGameState.managerName = name.trim();
+        settingManagerValueEl.textContent = currentGameState.managerName;
+        updateInitialStartButton();
+      }
+    });
+
+    // 都道府県リスト生成
+    function renderPrefectureList() {
+      prefListEl.innerHTML = "";
+      PREFS.forEach((p) => {
+        const btn = document.createElement("button");
+        btn.className = "pref-option";
+        btn.innerHTML = `
+          <span class="pref-option-main">${p.label}｜強さ${p.stars}</span>
+          <span class="pref-option-sub">タップして決定</span>
+        `;
+        btn.addEventListener("click", () => {
+          if (!currentGameState) return;
+          currentGameState.prefecture = p.label;
+          currentGameState.prefectureStars = p.stars;
+          settingPrefValueEl.textContent = `${p.label}｜強さ${p.stars}`;
+          updateInitialStartButton();
+          prefOverlay.classList.remove("active");
+        });
+        prefListEl.appendChild(btn);
+      });
+    }
+
+    // 都道府県選択を開く
+    settingPrefRow.addEventListener("click", () => {
+      prefOverlay.classList.add("active");
+    });
+
+    // オーバーレイ外側タップで閉じる
+    prefOverlay.addEventListener("click", (e) => {
+      if (e.target === prefOverlay) {
+        prefOverlay.classList.remove("active");
+      }
+    });
+
+    // 「はじめる」ボタン
+    btnInitialStart.addEventListener("click", () => {
+      if (!currentGameState || currentSlotIndex == null || btnInitialStart.disabled) return;
+
+      // セーブスロットに保存
+      saveSlots[currentSlotIndex] = deepClone(currentGameState);
+      saveSaveSlots();
+      renderSaveSlots();
+
+      applyGameStateToUI(currentGameState);
+      showGameScreen();
+    });
+
+    // ===========================================
+    //  ゲーム本編UIへ反映
+    // ===========================================
+    function applyGameStateToUI(state) {
+      if (!state) return;
+      document.getElementById("schoolName").textContent = state.schoolName;
+      document.getElementById("seasonLabel").textContent = state.seasonLabel;
+      document.getElementById("generationText").textContent = state.generation;
+      document.getElementById("reputationText").textContent = state.reputation;
+
+      const dateText = `春・${state.month}月${state.day}日`;
+      document.getElementById("currentDateText").textContent = dateText;
+    }
+
+    function showGameScreen() {
+      saveScreenEl.classList.remove("active");
+      initialSettingsScreenEl.classList.remove("active");
+      gameScreenEl.classList.add("active");
+    }
 
     // ===========================================
     //  タブ切り替え処理
@@ -734,7 +1392,6 @@
       const container = document.getElementById("playerList");
       container.innerHTML = "";
 
-      // ヘッダ行
       const header = document.createElement("div");
       header.className = "player-row header";
       header.innerHTML = `
@@ -745,7 +1402,6 @@
       `;
       container.appendChild(header);
 
-      // 各選手
       players.forEach((p) => {
         const row = document.createElement("div");
         row.className = "player-row";
@@ -762,6 +1418,8 @@
     // ===========================================
     //  練習メニュー描画
     // ===========================================
+    let selectedTrainingId = null;
+
     function renderTrainings() {
       const grid = document.getElementById("trainingGrid");
       grid.innerHTML = "";
@@ -792,24 +1450,20 @@
       });
     }
 
-    // ===========================================
-    //  「このメニューで進行」ボタン（今はダミー処理）
-    // ===========================================
-    document
-      .getElementById("applyTrainingBtn")
-      .addEventListener("click", () => {
-        if (!selectedTrainingId) {
-          alert("練習メニューを選択してください。");
-          return;
-        }
-        const t = trainings.find((x) => x.id === selectedTrainingId);
-        alert(
-          `「${t.name}」で進行しました。\n\n※今はダミーなので、あとでステータス変化やイベント処理を追加していけます。`
-        );
-      });
+    // 練習メニュー選択（ダミー処理）
+    document.getElementById("applyTrainingBtn").addEventListener("click", () => {
+      if (!selectedTrainingId) {
+        alert("練習メニューを選択してください。");
+        return;
+      }
+      const t = trainings.find((x) => x.id === selectedTrainingId);
+      alert(
+        `「${t.name}」で進行しました。\n\n※今はダミーなので、あとでステータス変化やイベント処理を追加していけます。`
+      );
+    });
 
     // ===========================================
-    //  日付進行ボタン（ダミー）
+    //  日付進行ボタン（今は説明用ダミー）
     // ===========================================
     document.getElementById("btnNextDay").addEventListener("click", () => {
       alert("1日進行（ダミー）。\n\nここに日付・予定・イベント処理などを実装していく想定。");
@@ -827,9 +1481,12 @@
     //  初期化
     // ===========================================
     function init() {
+      loadSaveSlots();
+      renderSaveSlots();
       renderSchedule();
       renderPlayers();
       renderTrainings();
+      renderPrefectureList();
     }
 
     init();
