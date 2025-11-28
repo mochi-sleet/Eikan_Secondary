@@ -3,1493 +3,1898 @@
 <head>
   <meta charset="UTF-8" />
   <title>栄冠セカンダリー（仮）</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 
   <style>
-    /* ===============================
-       カラーテーマ（野球場イメージ）
-       =============================== */
     :root {
-      --bg-main: #04141d;        /* 濃いナイター空 */
-      --bg-panel: #0b2530;       /* スコアボード風パネル */
-      --accent: #f5c453;         /* ファウルラインぽい黄 */
-      --accent-soft: #ffdf88;
+      --bg-main: #00121f;
+      --bg-panel: #11273b;
+      --accent: #ffcc33;
+      --accent-soft: #ffd966;
       --text-main: #f7f7f7;
-      --text-sub: #c0cfdc;
-      --danger: #ff6b6b;
-      --success: #72e28c;
-      --border-soft: #184050;
-      --slot-frame: #f5c453;
-      --slot-inner: #05291a;     /* 芝生っぽい深緑 */
-      --overlay-bg: rgba(0, 0, 0, 0.55);
-      --confirm-bg: #15653a;     /* 緑の確認ボックス */
+      --text-sub: #c0c6d7;
+      --danger: #ff6666;
+      --success: #6be38a;
+      --border-soft: #243954;
+
+      --card-orange: #ff8c1a;
+      --card-yellow: #ffd800;
+      --card-blue: #1a4fff;
+      --card-pink: #ff4fd8;
+      --card-red: #ff2b3a;
+      --calendar-green: #18a558;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #10445b 0, #020509 60%);
+      background: radial-gradient(circle at top, #1b3148 0, #000810 60%, #000000 100%);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
       justify-content: center;
+      align-items: center;
     }
 
-    .app {
-      width: 100%;
-      max-width: 600px;
-      padding: 10px 10px 16px;
+    #app {
+      width: min(420px, 100vw);
+      height: min(840px, 100vh);
+      background: #000;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      position: relative;
     }
 
-    /* 共通カード */
-    .card {
-      background: var(--bg-panel);
-      border-radius: 10px;
-      border: 1px solid var(--border-soft);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-      padding: 8px 10px;
-      margin-bottom: 10px;
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: none;
+      background: linear-gradient(#021422, #02070f);
+      color: var(--text-main);
     }
 
-    .card-header {
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel {
+      margin: 12px;
+      padding: 12px;
+      background: rgba(10,26,48,0.96);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.06);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    }
+
+    .panel-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 6px;
+      font-size: 13px;
+      color: var(--text-sub);
     }
 
-    .card-title {
-      font-size: 0.95rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
+    .panel-title {
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      font-size: 14px;
     }
 
     .badge {
-      display: inline-block;
-      font-size: 0.65rem;
-      padding: 2px 6px;
+      font-size: 11px;
+      padding: 2px 8px;
       border-radius: 999px;
-      background: var(--accent-soft);
-      color: #3b2a00;
-      font-weight: 600;
-    }
-
-    .small-text {
-      font-size: 0.75rem;
-      color: var(--text-sub);
-    }
-
-    .divider {
-      height: 1px;
-      background: rgba(255, 255, 255, 0.08);
-      margin: 4px 0 6px;
-    }
-
-    /* ===============================
-       画面切り替え
-       =============================== */
-    .screen {
-      display: none;
-    }
-    .screen.active {
-      display: block;
-    }
-
-    /* ===============================
-       ホーム画面：セーブスロット選択
-       =============================== */
-    .save-screen-title {
-      text-align: center;
-      margin-bottom: 12px;
-    }
-
-    .save-main-title {
-      font-size: 1.3rem;
-      font-weight: 800;
+      border: 1px solid rgba(255,255,255,0.15);
+      text-transform: uppercase;
       letter-spacing: 0.12em;
-      margin-bottom: 4px;
     }
 
-    .save-sub-title {
-      font-size: 0.8rem;
-      color: var(--text-sub);
+    button {
+      border: none;
+      outline: none;
+      cursor: pointer;
+      font-family: inherit;
     }
 
-    .slot-list {
+    .btn-main {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #f7b733, #fc4a1a);
+      color: #130b00;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      font-size: 13px;
+      text-align: center;
+      margin-top: 8px;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.6);
+      transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.08s ease;
+    }
+
+    .btn-main:active {
+      transform: translateY(1px);
+      box-shadow: 0 3px 9px rgba(0,0,0,0.7);
+      filter: brightness(0.95);
+    }
+
+    .btn-sub {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: transparent;
+      color: var(--text-main);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .btn-sub:active { background: rgba(255,255,255,0.08); }
+
+    .text-small { font-size: 12px; color: var(--text-sub); }
+    .text-center { text-align: center; }
+    .mt-4 { margin-top: 4px; }
+    .mt-8 { margin-top: 8px; }
+    .mt-12 { margin-top: 12px; }
+
+    /* スロット選択 */
+
+    #slot-screen .slot-list {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      margin-top: 12px;
+      gap: 8px;
+      margin-top: 8px;
     }
 
     .slot-item {
-      position: relative;
-      border-radius: 12px;
-      border: 2px solid var(--slot-frame);
-      padding: 8px 10px;
-      background:
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.4)),
-        var(--slot-inner);
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(1,12,24,0.9);
       cursor: pointer;
-      box-shadow: 0 6px 0 rgba(0, 0, 0, 0.6);
-      transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, background 0.1s;
+      transition: background 0.08s ease, transform 0.06s ease;
     }
 
-    .slot-item:active {
-      transform: translateY(2px);
-      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.5);
-    }
+    .slot-item:hover { background: rgba(255,255,255,0.04); }
+    .slot-item:active { transform: translateY(1px); }
 
     .slot-number {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      border: 2px solid var(--accent);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 0.9rem;
-      background: rgba(0, 0, 0, 0.45);
-    }
-
-    .slot-text {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .slot-label-main {
-      font-size: 0.85rem;
-    }
-
-    .slot-label-sub {
-      font-size: 0.7rem;
-      color: var(--text-sub);
-      margin-top: 2px;
-    }
-
-    .slot-empty .slot-label-main {
-      color: var(--text-sub);
-      font-style: italic;
-    }
-
-    .slot-meta-tag {
-      font-size: 0.65rem;
-      padding: 2px 6px;
+      width: 22px;
+      height: 22px;
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      margin-top: 2px;
-      align-self: flex-start;
-      opacity: 0.9;
-    }
-
-    /* ===============================
-       スロット選択時の確認オーバーレイ
-       =============================== */
-    .slot-confirm-overlay {
-      position: fixed;
-      inset: 0;
-      background: var(--overlay-bg);
+      border: 1px solid rgba(255,255,255,0.4);
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 50;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.15s ease-out;
+      font-weight: 600;
+      font-size: 12px;
+      background: rgba(10,27,56,0.9);
     }
 
-    .slot-confirm-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
+    .slot-main { flex: 1; }
+    .slot-title { font-size: 13px; font-weight: 600; }
+    .slot-meta { font-size: 11px; color: var(--text-sub); margin-top: 1px; }
+    .slot-empty { color: rgba(255,255,255,0.38); }
+
+    .dialog-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
     }
 
-    .slot-confirm-box {
+    .dialog {
       width: 86%;
-      max-width: 420px;
-      background: var(--confirm-bg);
-      border-radius: 14px;
-      border: 2px solid var(--accent-soft);
-      padding: 12px 12px 10px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+      max-width: 340px;
+      background: #081421;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.16);
+      padding: 14px 16px 10px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.8);
     }
 
-    .slot-confirm-title {
-      font-size: 0.9rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
+    .dialog-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .dialog-body { font-size: 13px; color: var(--text-sub); margin-bottom: 10px; line-height: 1.6; }
 
-    .slot-confirm-message {
-      font-size: 0.8rem;
-      line-height: 1.5;
-      margin-bottom: 10px;
-    }
-
-    .slot-confirm-buttons {
+    .dialog-actions {
       display: flex;
+      justify-content: flex-end;
       gap: 8px;
       margin-top: 4px;
     }
 
-    .btn-confirm {
-      flex: 1;
-      border-radius: 10px;
-      border: 1px solid rgba(0, 0, 0, 0.2);
-      padding: 8px 0;
-      font-size: 0.85rem;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 3px 0 rgba(0, 0, 0, 0.5);
-      transition: transform 0.05s ease-out, box-shadow 0.05s ease-out;
-    }
-
-    .btn-confirm:active {
-      transform: translateY(2px);
-      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
-    }
-
-    .btn-yes {
-      background: var(--accent-soft);
-      color: #2b1600;
-    }
-
-    .btn-no {
-      background: #0f2b1b;
+    .btn-dialog {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: transparent;
       color: var(--text-main);
     }
 
-    /* ===============================
-       初期設定画面
-       =============================== */
-    .setting-row {
-      margin-bottom: 8px;
-      padding: 8px 10px;
-      border-radius: 12px;
-      border-width: 2px;
-      border-style: solid;
-      background: rgba(0, 0, 0, 0.35);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
+    .btn-dialog-primary {
+      background: var(--accent);
+      color: #1a1200;
+      border: none;
+      font-weight: 600;
     }
 
-    .setting-row.clickable {
+    /* 初期設定 */
+
+    #setup-screen .setup-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .setup-row {
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      padding: 8px 10px;
+      background: rgba(5,20,39,0.95);
       cursor: pointer;
     }
 
-    .setting-row.school {
-      border-color: #ff6b7a;  /* 赤系 */
-    }
-    .setting-row.pref {
-      border-color: #ff8fe6;  /* ピンク系 */
-    }
-    .setting-row.manager {
-      border-color: #6bb5ff;  /* 青系 */
+    .setup-label { font-size: 12px; color: var(--text-sub); margin-bottom: 2px; }
+
+    .setup-value {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      font-weight: 500;
     }
 
-    .setting-label {
-      font-size: 0.8rem;
-      color: var(--text-sub);
-    }
+    .setup-placeholder { color: rgba(255,255,255,0.5); }
 
-    .setting-value {
-      flex: 1;
-      text-align: right;
-      font-size: 0.85rem;
-      font-weight: 600;
-      word-break: break-all;
-    }
-
-    .setting-hint {
-      font-size: 0.7rem;
-      color: var(--text-sub);
-      margin-top: 2px;
-    }
-
-    .setting-manager-image {
-      margin-top: 10px;
+    .setup-coach {
+      margin-top: 8px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: #002b1d;
       padding: 6px;
-      border-radius: 12px;
-      border: 2px solid #4ade80; /* 緑枠 */
-      background: rgba(7, 44, 23, 0.7);
       display: flex;
       justify-content: center;
       align-items: center;
     }
 
-    .setting-manager-image img {
-      max-width: 100%;
-      max-height: 180px;
-      object-fit: contain;
-      display: block;
-    }
-
-    .initial-start-btn {
+    .setup-coach img {
       width: 100%;
-      margin-top: 10px;
+      max-width: 260px;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
     }
 
-    .initial-start-btn[disabled] {
-      opacity: 0.5;
+    /* ホーム画面 */
+
+    #home-screen { background: #000; color: #fff; }
+
+    #home-header {
+      padding: 8px 10px 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0,0,0,0.8);
+      z-index: 3;
+    }
+
+    #home-header-left { font-size: 11px; line-height: 1.4; }
+    #home-header-title { font-size: 13px; font-weight: 600; }
+    #home-header-sub { color: var(--text-sub); }
+
+    #home-header-right { text-align: right; font-size: 11px; line-height: 1.3; }
+
+    #home-body {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: #000;
+    }
+
+    #home-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url("E走り込み.gif");
+      background-size: cover;
+      background-position: center;
+      opacity: 0.12;
+      pointer-events: none;
+    }
+
+    #home-foreground {
+      position: relative;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 8px 10px 10px;
+      gap: 8px;
+    }
+
+    #card-area {
+      flex: 1;
+      border-radius: 16px;
+      background: rgba(0,0,0,0.72);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 6px 6px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    #card-row-top {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      margin-top: 2px;
+    }
+
+    .practice-card {
+      border-radius: 8px;
+      color: #121212;
+      padding: 4px 4px;
+      min-height: 40px;
+      font-size: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.35);
+    }
+
+    .practice-card.selected {
+      outline: 2px solid #fff;
+      outline-offset: 0;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.4);
+    }
+
+    .practice-name {
+      font-weight: 700;
+      font-size: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .practice-detail { font-size: 9px; }
+
+    .practice-meta {
+      font-size: 11px; /* ←少し大きく */
+      text-align: right;
+      opacity: 0.9;
+    }
+
+    /* カードの色（マス色と対応） */
+    .card-color-white  { background:#f5f5f5; color:#111; }
+    .card-color-blue   { background:#4aa3ff; color:#021329; }
+    .card-color-red    { background:#ff5b6b; color:#2a0508; }
+    .card-color-yellow { background:#ffd633; color:#281800; }
+    .card-color-green  { background:#6be38a; color:#02150a; }
+    .card-color-baseball {
+      background:#ffe5bf;
+      background-image:url("E野球マス.jpg");
+      background-size:cover;
+      background-position:center;
+      color:#241203;
+    }
+
+    #card-row-bottom {
+      display: flex;
+      gap: 4px;
+      margin-top: 4px;
+      align-items: stretch;
+      flex: 1;
+    }
+
+    #home-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 38%;
+    }
+
+    .home-menu-btn {
+      flex: 1;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+    }
+
+    #btn-school { background: var(--card-blue); }
+    #btn-team   { background: var(--card-pink); }
+    #btn-option { background: var(--card-red); }
+
+    #card-execute {
+      flex: 1;
+      border-radius: 10px;
+      margin-left: 4px;
+      background: var(--card-yellow);
+      color: #281800;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+    }
+
+    #home-footer {
+      margin-top: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+    }
+
+    #home-log {
+      flex: 1;
+      min-height: 28px;
+      max-height: 52px;
+      overflow: hidden;
+      padding: 4px 6px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.8);
+      border: 1px solid rgba(255,255,255,0.14);
+      font-size: 10px;
+      line-height: 1.5;
+    }
+
+    #home-calendar-mini {
+      margin-left: 6px;
+      padding: 4px 6px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.8);
+      border: 1px solid rgba(255,255,255,0.16);
+      font-size: 10px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    #home-calendar-mini span { display:block; }
+
+    /* カレンダー画面 */
+
+    #calendar-screen { background:#000; }
+
+    #calendar-header {
+      padding: 8px 10px 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0,0,0,0.85);
+    }
+
+    #calendar-title {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+    }
+
+    #calendar-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cal-nav-btn {
+      width: 40px;   /* ←大きく */
+      height: 32px;  /* ←大きく */
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: rgba(0,0,0,0.4);
+      font-size: 15px;
+      color: #fff;
+    }
+
+    #calendar-month-label {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    #calendar-body {
+      flex: 1;
+      padding: 8px 10px 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: radial-gradient(circle at top, #123821 0, #020508 65%);
+      position: relative; /* 戻るボタン用 */
+    }
+
+    #calendar-grid {
+      flex: 1;
+      border-radius: 16px;
+      background: rgba(0,0,0,0.78);
+      border: 1px solid rgba(255,255,255,0.18);
+      padding: 6px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    #calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      margin-bottom: 3px;
+      font-size: 10px;
+      text-align: center;
+      color: var(--text-sub);
+    }
+
+    #calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+    }
+
+    .cal-day {
+      border-radius: 8px;
+      padding: 2px 2px 4px;
+      font-size: 10px;
+      min-height: 40px;
+      position: relative;
+      cursor: pointer;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      overflow:hidden;
+    }
+
+    .cal-day.disabled {
+      opacity: 0.18;
       cursor: default;
     }
 
-    /* 都道府県選択オーバーレイ */
-    .pref-list {
-      margin-top: 6px;
-      max-height: 260px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .pref-option {
-      width: 100%;
-      text-align: left;
-      border-radius: 8px;
-      border: 1px solid rgba(0, 0, 0, 0.3);
-      padding: 6px 8px;
-      font-size: 0.8rem;
-      background: #0b3423;
-      color: var(--text-main);
-      cursor: pointer;
-    }
-
-    .pref-option span {
-      display: block;
-    }
-
-    .pref-option-main {
-      font-weight: 600;
-    }
-
-    .pref-option-sub {
-      font-size: 0.7rem;
-      color: var(--text-sub);
-    }
-
-    /* ===============================
-       ゲーム本編ヘッダー＆タブ
-       =============================== */
-    .game-header {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .game-title-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .game-title {
-      font-size: 1.2rem;
-      font-weight: 800;
-      letter-spacing: 0.1em;
-    }
-
-    .season-label {
-      font-size: 0.7rem;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid var(--accent);
-      color: var(--accent-soft);
-    }
-
-    .info-row {
+    .cal-day-header {
       display: flex;
       justify-content: space-between;
-      font-size: 0.75rem;
-      color: var(--text-sub);
-    }
-
-    .info-row span {
-      display: inline-flex;
       align-items: center;
-      gap: 4px;
+      margin-bottom: 1px;
     }
 
-    .tab-bar {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      margin-top: 8px;
-    }
+    .cal-day-number { font-weight: 600; }
 
-    .tab-button {
-      font-size: 0.7rem;
-      padding: 6px 4px;
+    .cal-day-today {
       border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(0, 0, 0, 0.25);
-      color: var(--text-sub);
-      text-align: center;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .tab-button.active {
+      padding: 2px 6px;
       background: var(--accent);
-      color: #2a1a00;
+      color: #271800;
+      font-size: 9px;
       font-weight: 700;
-      border-color: transparent;
     }
 
-    .main-view {
-      margin-top: 10px;
-    }
-
-    .tab-view {
-      display: none;
-      animation: fadeIn 0.18s ease-out;
-    }
-
-    .tab-view.active {
-      display: block;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(4px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* 予定 */
-    .calendar-row {
-      display: flex;
-      gap: 6px;
-    }
-    .calendar-main {
-      flex: 2;
-    }
-    .calendar-side {
-      flex: 1.2;
-    }
-    .schedule-list {
-      list-style: none;
-      font-size: 0.8rem;
-    }
-    .schedule-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 4px 0;
-      border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
-    }
-    .schedule-item:last-child {
-      border-bottom: none;
-    }
-    .schedule-label {
-      font-size: 0.65rem;
-      padding: 1px 5px;
+    .cal-day-color-dot {
+      width: 10px;
+      height: 10px;
       border-radius: 999px;
-    }
-    .schedule-label.practice {
-      background: rgba(107, 227, 138, 0.16);
-      color: var(--success);
-      border: 1px solid rgba(107, 227, 138, 0.5);
-    }
-    .schedule-label.match {
-      background: rgba(255, 107, 107, 0.16);
-      color: var(--danger);
-      border: 1px solid rgba(255, 107, 107, 0.5);
-    }
-    .schedule-label.event {
-      background: rgba(245, 196, 83, 0.16);
-      color: var(--accent-soft);
-      border: 1px solid rgba(245, 196, 83, 0.5);
-    }
-    .resource-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.8rem;
-    }
-    .resource-value {
-      font-weight: 700;
-      color: var(--accent-soft);
+      border: 1px solid rgba(0,0,0,0.4);
     }
 
-    /* チーム・選手一覧 */
-    .player-list {
-      max-height: 260px;
-      overflow-y: auto;
-      padding-right: 4px;
+    .cal-day-content { font-size: 9px; line-height: 1.2; margin-top: 1px; }
+
+    /* マスの背景を色/画像で表現 */
+    .cal-bg-white  { background:#f5f5f5; color:#111; }
+    .cal-bg-blue   { background:#4aa3ff; color:#021329; }
+    .cal-bg-red    { background:#ff5b6b; color:#2a0508; }
+    .cal-bg-yellow { background:#ffd633; color:#281800; }
+    .cal-bg-green  { background:#6be38a; color:#02150a; }
+    .cal-bg-baseball {
+      background:#ffe5bf;
+      background-image:url("E野球マス.jpg");
+      background-size:cover;
+      background-position:center;
+      color:#241203;
     }
-    .player-row {
-      display: grid;
-      grid-template-columns: 1.6fr 0.7fr 0.7fr 0.9fr;
-      gap: 4px;
-      padding: 3px 0;
-      font-size: 0.75rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      align-items: center;
-    }
-    .player-row.header {
-      font-weight: 700;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      color: var(--text-sub);
-      border-bottom-color: rgba(255, 255, 255, 0.18);
-    }
-    .player-name {
-      font-weight: 600;
-    }
-    .player-grade {
-      font-size: 0.7rem;
-      padding: 2px 4px;
+
+    .cal-day-event-icon {
+      position: absolute;
+      right: 2px;
+      bottom: 2px;
+      width: 18px;
+      height: 18px;
       border-radius: 4px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      text-align: center;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.7);
     }
-    .chip {
-      display: inline-flex;
+
+    .cal-day-event-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      image-rendering: pixelated;
+    }
+
+    #calendar-legend {
+      margin-top: 4px;
+      font-size: 9px;
+      color: var(--text-sub);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 8px;
+      padding-right: 120px; /* 戻るボタンスペース確保 */
+    }
+
+    .legend-item { display:flex; align-items:center; gap:3px; }
+    .legend-color {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,0.4);
+    }
+
+    #calendar-footer {
+      margin-top: 3px;
+      font-size: 10px;
+      color: var(--text-sub);
+    }
+
+    /* 戻るボタン（右下・大きめ） */
+    #calendar-back {
+      position:absolute;
+      right:10px;
+      bottom:10px;
+      width:130px;
+      height:44px;
+      border-radius:999px;
+      background:linear-gradient(90deg,#f7b733,#fc4a1a);
+      color:#1a1200;
+      font-weight:700;
+      font-size:14px;
+      letter-spacing:0.1em;
+      box-shadow:0 6px 16px rgba(0,0,0,0.7);
+    }
+
+    #calendar-back:active {
+      transform:translateY(1px);
+      box-shadow:0 3px 9px rgba(0,0,0,0.8);
+    }
+
+    /* 汎用イベントモーダル */
+
+    #event-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.70);
+      display: none;
       align-items: center;
       justify-content: center;
-      padding: 1px 6px;
-      border-radius: 999px;
-      font-size: 0.65rem;
-      border: 1px solid rgba(255, 255, 255, 0.14);
+      z-index: 40;
     }
 
-    /* 練習メニュー */
-    .training-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 6px;
+    #event-dialog {
+      width: 88%;
+      max-width: 360px;
+      background: #050c16;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.18);
+      padding: 12px 14px 10px;
+      box-shadow: 0 18px 45px rgba(0,0,0,0.9);
     }
-    .training-card {
-      background: rgba(0, 0, 0, 0.25);
-      border-radius: 8px;
-      padding: 6px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      font-size: 0.75rem;
-      cursor: pointer;
-    }
-    .training-card.selected {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(255, 204, 51, 0.6);
-    }
-    .training-name {
-      font-weight: 700;
-      margin-bottom: 2px;
-    }
-    .training-meta {
+
+    #event-dialog-header {
       display: flex;
-      justify-content: space-between;
-      font-size: 0.7rem;
-      color: var(--text-sub);
-    }
-    .training-desc {
-      font-size: 0.7rem;
-      margin-top: 2px;
-      color: var(--text-sub);
-    }
-    .training-footer {
-      margin-top: 6px;
-      display: flex;
-      justify-content: space-between;
       align-items: center;
-      font-size: 0.7rem;
-    }
-    .btn-main {
-      border: none;
-      border-radius: 999px;
-      padding: 6px 12px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      background: var(--accent);
-      color: #2f1a00;
-      cursor: pointer;
-    }
-    .btn-main:active {
-      transform: translateY(1px);
-    }
-
-    /* 試合画面（ダミー） */
-    .match-layout {
-      display: grid;
-      grid-template-columns: 1.2fr 1fr;
       gap: 8px;
+      margin-bottom: 6px;
     }
-    .score-board {
-      font-size: 0.8rem;
-    }
-    .score-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 2px 0;
-    }
-    .inning-labels {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.65rem;
-      margin-bottom: 2px;
-      color: var(--text-sub);
-    }
-    .dummy-character {
-      background: rgba(0, 0, 0, 0.3);
+
+    #event-dialog-header img {
+      width: 40px;
+      height: 40px;
       border-radius: 8px;
-      border: 1px dashed rgba(255, 255, 255, 0.3);
-      min-height: 100px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.75rem;
-      text-align: center;
-      padding: 6px;
+      object-fit: cover;
+      image-rendering: pixelated;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.6);
     }
 
-    /* フッター（ターンボタン） */
-    .footer-bar {
-      position: sticky;
-      bottom: 0;
-      margin-top: 8px;
-      background: linear-gradient(to top, #050811, transparent);
-      padding-top: 6px;
+    #event-dialog-title { font-size: 14px; font-weight: 700; }
+
+    #event-dialog-body {
+      font-size: 13px;
+      color: var(--text-sub);
+      line-height: 1.6;
+      margin-bottom: 10px;
     }
-    .footer-inner {
+
+    #event-dialog-footer {
       display: flex;
-      gap: 6px;
+      justify-content: flex-end;
     }
-    .footer-btn {
-      flex: 1;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      font-size: 0.75rem;
-      padding: 6px 4px;
-      background: rgba(0, 0, 0, 0.4);
+
+    /* 小さい入力系 */
+
+    .input-inline {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(3,18,34,0.96);
       color: var(--text-main);
-      text-align: center;
-      cursor: pointer;
-    }
-    .footer-btn.primary {
-      background: var(--accent);
-      color: #2f1a00;
-      font-weight: 700;
-      border-color: transparent;
+      font-size: 13px;
+      margin-top: 4px;
     }
 
-    /* スクロールバー */
-    ::-webkit-scrollbar {
-      width: 4px;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.25);
-      border-radius: 999px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
+    .input-inline::placeholder { color: rgba(255,255,255,0.4); }
+    .dialog-small-note { font-size: 11px; color: var(--text-sub); margin-top: 4px; }
+
   </style>
 </head>
 <body>
-  <div class="app">
-
-    <!-- ===============================
-         ホーム画面：セーブスロット選択
-         =============================== -->
-    <div id="saveScreen" class="screen active">
-      <div class="card">
-        <div class="save-screen-title">
-          <div class="save-main-title">EIKAN SECONDARY</div>
-          <div class="save-sub-title">セーブデータを選んでください</div>
+  <div id="app">
+    <!-- スロット選択 -->
+    <div id="slot-screen" class="screen active">
+      <div class="panel" style="margin: 16px 12px 8px;">
+        <div class="panel-header">
+          <div class="panel-title">栄冠セカンダリー</div>
+          <div class="badge">SAVE SLOT</div>
         </div>
+        <div class="text-small">
+          遊びたいセーブデータを選んでください。<br />
+          5つまで記録できます。
+        </div>
+        <div class="slot-list" id="slot-list"></div>
+      </div>
+      <div class="text-small text-center" style="margin-top: auto; margin-bottom: 10px; opacity: .7;">
+        ※ セーブデータはこの端末のブラウザに保存されます（削除すると消えます）
+      </div>
+    </div>
 
-        <div class="slot-list" id="slotList">
-          <!-- JSで5スロット分を生成 -->
+    <!-- スロット確認ダイアログ -->
+    <div class="dialog-overlay" id="slot-dialog-overlay">
+      <div class="dialog">
+        <div class="dialog-title" id="slot-dialog-title"></div>
+        <div class="dialog-body" id="slot-dialog-body"></div>
+        <div class="dialog-actions">
+          <button class="btn-dialog" id="slot-dialog-cancel">いいえ</button>
+          <button class="btn-dialog btn-dialog-primary" id="slot-dialog-ok">はい</button>
         </div>
       </div>
     </div>
 
-    <!-- スロット確認オーバーレイ -->
-    <div id="slotConfirmOverlay" class="slot-confirm-overlay">
-      <div class="slot-confirm-box">
-        <div class="slot-confirm-title" id="slotConfirmTitle"></div>
-        <div class="slot-confirm-message" id="slotConfirmMessage"></div>
-        <div class="slot-confirm-buttons">
-          <button class="btn-confirm btn-yes" id="slotConfirmYes">はい</button>
-          <button class="btn-confirm btn-no" id="slotConfirmNo">いいえ</button>
+    <!-- 初期設定 -->
+    <div id="setup-screen" class="screen">
+      <div class="panel" style="margin: 14px 12px 8px;">
+        <div class="panel-header">
+          <div class="panel-title">初期設定</div>
+          <div class="badge">SETUP</div>
         </div>
-      </div>
-    </div>
-
-    <!-- 都道府県選択オーバーレイ -->
-    <div id="prefOverlay" class="slot-confirm-overlay">
-      <div class="slot-confirm-box">
-        <div class="slot-confirm-title">都道府県を選択</div>
-        <div class="pref-list" id="prefList">
-          <!-- JSで都道府県を生成 -->
-        </div>
-      </div>
-    </div>
-
-    <!-- ===============================
-         初期設定画面
-         =============================== -->
-    <div id="initialSettingsScreen" class="screen">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">初期設定</div>
-          <span class="badge">SETUP</span>
-        </div>
-        <div class="small-text" style="margin-bottom:8px;">
+        <div class="text-small">
           高校名・都道府県・監督名を決めてから「はじめる」を押してください。
         </div>
 
-        <div class="setting-row school clickable" id="settingSchoolRow">
-          <div>
-            <div class="setting-label">高校名</div>
-            <div class="setting-hint">タップして高校名を入力</div>
+        <div class="setup-grid">
+          <div class="setup-row" id="setup-school-row">
+            <div class="setup-label">高校名</div>
+            <div class="setup-value">
+              <span id="setup-school-name" class="setup-placeholder">タップして高校名を入力</span>
+              <span>〇〇高校</span>
+            </div>
           </div>
-          <div class="setting-value" id="settingSchoolValue">○○高校</div>
-        </div>
 
-        <div class="setting-row pref clickable" id="settingPrefRow">
-          <div>
-            <div class="setting-label">都道府県</div>
-            <div class="setting-hint">タップして選択</div>
+          <div class="setup-row" id="setup-pref-row">
+            <div class="setup-label">都道府県</div>
+            <div class="setup-value">
+              <span id="setup-pref-label" class="setup-placeholder">タップして選択</span>
+              <span id="setup-pref-stars">未選択</span>
+            </div>
           </div>
-          <div class="setting-value" id="settingPrefValue">未選択</div>
-        </div>
 
-        <div class="setting-row manager clickable" id="settingManagerRow">
-          <div>
-            <div class="setting-label">監督名</div>
-            <div class="setting-hint">タップして監督名を入力</div>
+          <div class="setup-row" id="setup-coach-row">
+            <div class="setup-label">監督名</div>
+            <div class="setup-value">
+              <span id="setup-coach-name" class="setup-placeholder">タップして監督名を入力</span>
+              <span>監督</span>
+            </div>
           </div>
-          <div class="setting-value" id="settingManagerValue">監督</div>
         </div>
 
-        <div class="setting-manager-image">
-          <!-- E監督.png は同じフォルダに置いておく想定 -->
-          <img src="E監督.png" alt="監督イメージ">
+        <div class="setup-coach">
+          <img src="E監督.png" alt="監督イメージ" />
         </div>
 
-        <button class="btn-main initial-start-btn" id="btnInitialStart" disabled>はじめる</button>
+        <button class="btn-main" id="setup-start-btn" disabled>はじめる</button>
       </div>
     </div>
 
-    <!-- ===============================
-         ゲーム本編画面（最初は非表示）
-         =============================== -->
-    <div id="gameScreen" class="screen">
-      <div class="card">
-        <div class="game-header">
-          <div class="game-title-row">
-            <div class="game-title">栄冠セカンダリー</div>
-            <div class="season-label" id="seasonLabel">西暦 20XX 年度</div>
-          </div>
-          <div class="info-row">
-            <span>高校名：<strong id="schoolName">○○高校</strong></span>
-            <span>現在：<span id="currentDateText">春・4月1週</span></span>
-          </div>
-          <div class="info-row">
-            <span>世代：<span id="generationText">1 代目</span></span>
-            <span>評判：<span id="reputationText">そこそこ</span></span>
-          </div>
+    <!-- ホーム画面 -->
+    <div id="home-screen" class="screen">
+      <div id="home-header">
+        <div id="home-header-left">
+          <div id="home-header-title"></div>
+          <div id="home-header-sub"></div>
         </div>
-
-        <!-- タブバー -->
-        <div class="tab-bar">
-          <button class="tab-button active" data-tab="home">予定</button>
-          <button class="tab-button" data-tab="team">チーム</button>
-          <button class="tab-button" data-tab="training">練習</button>
-          <button class="tab-button" data-tab="match">試合</button>
+        <div id="home-header-right">
+          <div id="home-header-date"></div>
+          <div id="home-header-season"></div>
         </div>
       </div>
-
-      <!-- メインビュー：タブごとの画面 -->
-      <div class="main-view">
-        <!-- ▼ 予定 / ホーム画面 -->
-        <div class="tab-view active" id="tab-home">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">今週の予定</div>
-              <span class="badge">CALENDAR</span>
-            </div>
-            <div class="calendar-row">
-              <div class="calendar-main">
-                <ul class="schedule-list" id="scheduleList">
-                  <!-- JSで予定を挿入 -->
-                </ul>
+      <div id="home-body">
+        <div id="home-bg"></div>
+        <div id="home-foreground">
+          <div id="card-area">
+            <div id="card-row-top"></div>
+            <div id="card-row-bottom">
+              <div id="home-menu">
+                <button id="btn-school" class="home-menu-btn">学校状況<br />（未実装）</button>
+                <button id="btn-team" class="home-menu-btn">チーム状況<br />（未実装）</button>
+                <button id="btn-option" class="home-menu-btn">オプション<br />（未実装）</button>
               </div>
-              <div class="calendar-side">
-                <div class="small-text">次のイベント</div>
-                <div id="nextEventText" style="font-size:0.8rem; margin-top:2px;">
-                  夏大会1回戦まで 10 日
-                </div>
-                <div class="divider"></div>
-                <div class="small-text">リソース</div>
-                <div class="resource-row" style="margin-top:2px;">
-                  <span>体力：</span>
-                  <span class="resource-value" id="staminaText">やや多い</span>
-                </div>
-                <div class="resource-row">
-                  <span>やる気：</span>
-                  <span class="resource-value" id="moraleText">普通</span>
-                </div>
-                <div class="resource-row">
-                  <span>ポイント：</span>
-                  <span class="resource-value" id="pointText">25</span>
-                </div>
-              </div>
+              <button id="card-execute">実 行</button>
             </div>
           </div>
-
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">メモ</div>
-              <span class="badge">MEMO</span>
-            </div>
-            <div class="small-text">
-              ここに「今年の目標」や「育成方針」などを書けるように、あとでメモ機能をつけてもOK。
+          <div id="home-footer">
+            <div id="home-log">新学期の準備中です…</div>
+            <div id="home-calendar-mini">
+              <span style="font-size:9px; color:#bbb;">カレンダー</span>
+              <span id="mini-calendar-label">----年--月</span>
+              <span id="mini-calendar-day">--日（--）</span>
             </div>
           </div>
-        </div>
-
-        <!-- ▼ チーム / 選手一覧 -->
-        <div class="tab-view" id="tab-team">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">選手一覧</div>
-              <span class="badge">ROSTER</span>
-            </div>
-            <div class="small-text" style="margin-bottom:4px;">
-              とりあえずダミーデータで一覧を作ってあるので、あとで JSON などに差し替え可能。
-            </div>
-            <div class="player-list" id="playerList">
-              <!-- JS でダミー選手を挿入 -->
-            </div>
-          </div>
-        </div>
-
-        <!-- ▼ 練習メニュー -->
-        <div class="tab-view" id="tab-training">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">練習メニュー選択</div>
-              <span class="badge">TRAINING</span>
-            </div>
-            <div class="small-text" style="margin-bottom:4px;">
-              練習を選んで「このメニューで進行」を押すと、今後ステータス変化やイベント処理を入れられる想定。
-            </div>
-            <div class="training-grid" id="trainingGrid">
-              <!-- JSで練習メニューを挿入 -->
-            </div>
-            <div class="training-footer">
-              <span>選択中：<span id="selectedTrainingName">なし</span></span>
-              <button class="btn-main" id="applyTrainingBtn">このメニューで進行</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- ▼ 試合ダミー画面 -->
-        <div class="tab-view" id="tab-match">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">試合（ダミー）</div>
-              <span class="badge">GAME</span>
-            </div>
-            <div class="small-text" style="margin-bottom:4px;">
-              ここにスコアボードや試合中のコマンド（投球・采配など）を追加していく想定。
-            </div>
-
-            <div class="match-layout">
-              <div class="score-board">
-                <div class="inning-labels">
-                  <span></span>
-                  <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span>
-                  <span>6</span><span>7</span><span>8</span><span>9</span>
-                  <span>計</span>
-                </div>
-                <div class="score-row">
-                  <span>自校</span>
-                  <span>0</span><span>0</span><span>0</span><span>0</span><span>0</span>
-                  <span>0</span><span>0</span><span>0</span><span>0</span>
-                  <span>0</span>
-                </div>
-                <div class="score-row">
-                  <span>相手</span>
-                  <span>0</span><span>0</span><span>0</span><span>0</span><span>0</span>
-                  <span>0</span><span>0</span><span>0</span><span>0</span>
-                  <span>0</span>
-                </div>
-                <div class="divider"></div>
-                <div class="small-text">
-                  イニング進行や結果表示などをあとからJSで制御できるようにしていく。
-                </div>
-              </div>
-              <div class="dummy-character">
-                ここに<br>ピッチャー・バッターなど<br>自作キャラの絵を表示
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- フッターボタン -->
-      <div class="footer-bar">
-        <div class="footer-inner">
-          <button class="footer-btn" id="btnPrevDay">前の日へ</button>
-          <button class="footer-btn primary" id="btnNextDay">進行する</button>
-          <button class="footer-btn" id="btnAuto">おまかせ</button>
         </div>
       </div>
     </div>
+
+    <!-- カレンダー画面 -->
+    <div id="calendar-screen" class="screen">
+      <div id="calendar-header">
+        <div id="calendar-title">年間スケジュール</div>
+        <div id="calendar-nav">
+          <button class="cal-nav-btn" id="cal-prev">&lt;</button>
+          <div id="calendar-month-label"></div>
+          <button class="cal-nav-btn" id="cal-next">&gt;</button>
+        </div>
+      </div>
+      <div id="calendar-body">
+        <div id="calendar-grid">
+          <div id="calendar-weekdays">
+            <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
+          </div>
+          <div id="calendar-days"></div>
+        </div>
+        <div id="calendar-legend">
+          <div class="legend-item">
+            <div class="legend-color cal-bg-white"></div><span>白：良い/悪いどちらも起こる</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color cal-bg-blue"></div><span>青：良いこと</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color cal-bg-red"></div><span>赤：良くないこと</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color cal-bg-yellow"></div><span>黄：ポイント2倍</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color cal-bg-green"></div><span>緑：体力回復</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color cal-bg-baseball"></div><span>野球：特殊能力チャンス</span>
+          </div>
+        </div>
+        <div id="calendar-footer">
+          ※ 日付をタップすると、練習試合やスカウトの予定を入れられます（対応期間のみ）
+        </div>
+        <button id="calendar-back">戻る</button>
+      </div>
+    </div>
+
+    <!-- イベントモーダル -->
+    <div id="event-overlay">
+      <div id="event-dialog">
+        <div id="event-dialog-header">
+          <img id="event-dialog-image" src="" alt="event" />
+          <div id="event-dialog-title"></div>
+        </div>
+        <div id="event-dialog-body"></div>
+        <div id="event-dialog-footer">
+          <button class="btn-dialog btn-dialog-primary" id="event-dialog-ok">OK</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script>
-    // ===========================================
-    //  ユーティリティ：ディープコピー
-    // ===========================================
-    function deepClone(obj) {
-      return JSON.parse(JSON.stringify(obj));
+    const STORAGE_KEY = "eikan_secondary_save_v1";
+
+    const MOTIVATION_LEVELS = ["絶不調","不調","普通","好調","絶好調"];
+    const SCHOOL_RATINGS = ["弱小","そこそこ","普通","強豪","名門"];
+    const TILE_COLORS = ["white","blue","red","yellow","green","baseball"];
+
+    function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+    function sample(a){ return a[Math.floor(Math.random()*a.length)]; }
+    function cloneDate(d){ return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
+    function formatDateJP(date){
+      const w=["日","月","火","水","木","金","土"];
+      return `${date.getFullYear()}年${date.getMonth()+1}月${date.getDate()}日（${w[date.getDay()]}）`;
     }
+    function weekdayName(d){ return ["日","月","火","水","木","金","土"][d]; }
 
-    // ===========================================
-    //  ダミーデータ類（予定・選手・練習）
-    // ===========================================
-    const scheduleData = [
-      { day: "月", label: "練習", type: "practice", detail: "守備練習中心" },
-      { day: "火", label: "練習", type: "practice", detail: "打撃＆走塁" },
-      { day: "水", label: "イベント", type: "event", detail: "新入部員あいさつ" },
-      { day: "木", label: "練習", type: "practice", detail: "投手陣メイン" },
-      { day: "金", label: "練習", type: "practice", detail: "紅白戦" },
-      { day: "土", label: "試合", type: "match", detail: "練習試合 vs △△高校" },
-      { day: "日", label: "休み", type: "event", detail: "完全オフ" },
-    ];
-
-    const players = [
-      { name: "山田 太郎", position: "投", grade: "3年", mood: "普通" },
-      { name: "佐藤 次郎", position: "捕", grade: "3年", mood: "好調" },
-      { name: "鈴木 一郎", position: "遊", grade: "2年", mood: "絶好調" },
-      { name: "田中 花子", position: "外", grade: "2年", mood: "不調" },
-      { name: "高橋 大", position: "内", grade: "1年", mood: "普通" },
-      { name: "中村 光", position: "投", grade: "1年", mood: "普通" },
-      { name: "小林 蓮", position: "外", grade: "1年", mood: "やる気MAX" },
-    ];
-
-    const trainings = [
-      { id: "batting",  name: "打撃強化",     cost: 3, fatigue: "小",     desc: "ミート・パワー重視のメニュー。" },
-      { id: "defense",  name: "守備強化",     cost: 2, fatigue: "小",     desc: "エラー減少・守備安定を狙う。" },
-      { id: "running",  name: "走塁・機動力", cost: 2, fatigue: "中",     desc: "盗塁・走塁センスアップ。" },
-      { id: "pitching", name: "投手メニュー", cost: 4, fatigue: "中〜大", desc: "球速・コントロール・スタミナを伸ばす。" },
-    ];
-
-    // ===========================================
-    //  都道府県データ（強さ付き）
-    // ===========================================
-    const PREFS = [
-      { id: "hokkaido", label: "北海道", stars: "☆☆★★★" },
-      { id: "aomori",   label: "青森県", stars: "☆☆☆★★" },
-      { id: "iwate",    label: "岩手県", stars: "☆☆☆★★" },
-      { id: "miyagi",   label: "宮城県", stars: "☆☆★★★" },
-      { id: "akita",    label: "秋田県", stars: "☆☆☆★★" },
-      { id: "yamagata", label: "山形県", stars: "☆☆☆☆★" },
-      { id: "fukushima",label: "福島県", stars: "☆☆☆★★" },
-      { id: "ibaraki",  label: "茨城県", stars: "☆☆★★★" },
-      { id: "tochigi",  label: "栃木県", stars: "☆☆★★★" },
-      { id: "gunma",    label: "群馬県", stars: "☆☆★★★" },
-      { id: "saitama",  label: "埼玉県", stars: "☆☆★★★" },
-      { id: "chiba",    label: "千葉県", stars: "☆★★★★" },
-      { id: "tokyo",    label: "東京都", stars: "★★★★★" },
-      { id: "kanagawa", label: "神奈川県", stars: "★★★★★" },
-      { id: "niigata",  label: "新潟県", stars: "☆☆☆☆★" },
-      { id: "toyama",   label: "富山県", stars: "☆☆☆☆★" },
-      { id: "ishikawa", label: "石川県", stars: "☆☆☆★★" },
-      { id: "fukui",    label: "福井県", stars: "☆☆★★★" },
-      { id: "yamanashi",label: "山梨県", stars: "☆☆☆★★" },
-      { id: "nagano",   label: "長野県", stars: "☆☆☆★★" },
-      { id: "gifu",     label: "岐阜県", stars: "☆☆★★★" },
-      { id: "shizuoka", label: "静岡県", stars: "☆☆★★★" },
-      { id: "aichi",    label: "愛知県", stars: "★★★★★" },
-      { id: "mie",      label: "三重県", stars: "☆☆☆★★" },
-      { id: "shiga",    label: "滋賀県", stars: "☆☆☆★★" },
-      { id: "kyoto",    label: "京都府", stars: "☆★★★★" },
-      { id: "osaka",    label: "大阪府", stars: "★★★★★" },
-      { id: "hyogo",    label: "兵庫県", stars: "★★★★★" },
-      { id: "nara",     label: "奈良県", stars: "☆★★★★" },
-      { id: "wakayama", label: "和歌山県", stars: "★★★★★" },
-      { id: "tottori",  label: "鳥取県", stars: "☆☆☆★★" },
-      { id: "shimane",  label: "島根県", stars: "☆☆☆★★" },
-      { id: "okayama",  label: "岡山県", stars: "☆☆★★★" },
-      { id: "hiroshima",label: "広島県", stars: "☆★★★★" },
-      { id: "yamaguchi",label: "山口県", stars: "☆☆★★★" },
-      { id: "tokushima",label: "徳島県", stars: "☆☆★★★" },
-      { id: "kagawa",   label: "香川県", stars: "☆☆★★★" },
-      { id: "ehime",    label: "愛媛県", stars: "☆★★★★" },
-      { id: "kochi",    label: "高知県", stars: "☆★★★★" },
-      { id: "fukuoka",  label: "福岡県", stars: "☆★★★★" },
-      { id: "saga",     label: "佐賀県", stars: "☆☆☆☆★" },
-      { id: "nagasaki", label: "長崎県", stars: "☆☆☆★★" },
-      { id: "kumamoto", label: "熊本県", stars: "☆☆☆★★" },  // 未指定 → 中堅扱い
-      { id: "oita",     label: "大分県", stars: "☆☆★★★" },
-      { id: "miyazaki", label: "宮崎県", stars: "☆☆☆★★" },
-      { id: "kagoshima",label: "鹿児島県", stars: "☆☆★★★" },
-      { id: "okinawa",  label: "沖縄県", stars: "☆☆☆★★" }   // 未指定 → 中堅扱い
-    ];
-
-    // ===========================================
-    //  セーブスロット管理（localStorage）
-    // ===========================================
-    const SAVE_KEY = "eikanSecondarySaveSlots_v1";
-    const EMPTY_MESSAGE = "まだ記録がないよ";
-
-    let currentGameState = null;   // {slotIndex, schoolName, ...}
-    let currentSlotIndex = null;   // 0〜4
-    let saveSlots = [null, null, null, null, null];
-
-    function loadSaveSlots() {
-      try {
-        const raw = localStorage.getItem(SAVE_KEY);
-        if (!raw) return;
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length === 5) {
-          saveSlots = parsed;
-        }
-      } catch (e) {
-        console.warn("セーブデータ読み込みエラー", e);
-      }
+    function nthWeekdayOfMonth(year,monthIndex,weekday,nth){
+      const first=new Date(year,monthIndex,1);
+      let day=first.getDay();
+      let diff=(weekday-day+7)%7;
+      let date=1+diff+(nth-1)*7;
+      return new Date(year,monthIndex,date);
     }
+    function secondMondayOfApril(year){ return nthWeekdayOfMonth(year,3,1,2); }
+    function secondFridayOfMarch(year){ return nthWeekdayOfMonth(year,2,5,2); }
 
-    function saveSaveSlots() {
-      try {
-        localStorage.setItem(SAVE_KEY, JSON.stringify(saveSlots));
-      } catch (e) {
-        console.warn("セーブデータ保存エラー", e);
-      }
+    function loadAllSaves(){
+      try{
+        const raw=localStorage.getItem(STORAGE_KEY);
+        if(!raw) return {};
+        return JSON.parse(raw);
+      }catch(e){ console.warn(e); return {}; }
     }
+    function saveAllSaves(d){ localStorage.setItem(STORAGE_KEY,JSON.stringify(d)); }
+    function loadSlot(id){ const all=loadAllSaves(); return all[id]||null; }
+    function saveSlot(id,state){ const all=loadAllSaves(); all[id]=state; saveAllSaves(all); }
 
-    function createNewGameState(slotIndex) {
-      return {
-        slotIndex,
-        schoolName: "○○高校",
-        yearCount: 1,
-        month: 4,
-        day: 1,
-        seasonLabel: "西暦 20XX 年度",
-        generation: "1 代目",
-        reputation: "そこそこ",
-        prefecture: null,
-        prefectureStars: null,
-        managerName: "監督",
+    function createNewGameState(slotId,schoolName,prefecture,prefStars,coachName){
+      const year=2026;
+      const startDate=secondMondayOfApril(year);
+      return{
+        slotId,
+        meta:{schoolName,prefecture,prefectureStars:prefStars,coachName,createdAt:Date.now()},
+        date:{year,month:startDate.getMonth(),day:startDate.getDate()},
+        progression:{yearCount:1,schoolRating:0},
+        players:[],
+        calendar:{},
+        schedules:{},
+        tournaments:{summer:{alive:true},jingu:{alive:true},spring:{alive:true}},
+        system:{lastProcessedDate:`${year}-${startDate.getMonth()+1}-${startDate.getDate()}`}
       };
     }
 
-    function gameStateToLabel(state) {
-      if (!state) return EMPTY_MESSAGE;
-      return `${state.schoolName}｜${state.yearCount}年目｜${state.month}月${state.day}日`;
-    }
+    function currentDateObj(state){ return new Date(state.date.year,state.date.month,state.date.day); }
+    function setDateFromObj(state,d){ state.date.year=d.getFullYear();state.date.month=d.getMonth();state.date.day=d.getDate(); }
 
-    // ===========================================
-    //  ホーム画面：スロット描画
-    // ===========================================
-    function renderSaveSlots() {
-      const list = document.getElementById("slotList");
-      list.innerHTML = "";
+    let currentSlotId=null;
+    let gameState=null;
+    let selectedCardIndex=0;
+    let calendarViewYear=2026;
+    let calendarViewMonth=3;
 
-      saveSlots.forEach((slot, idx) => {
-        const item = document.createElement("div");
-        item.className = "slot-item" + (slot ? "" : " slot-empty");
-        item.dataset.index = idx.toString();
+    const slotScreen=document.getElementById("slot-screen");
+    const slotListEl=document.getElementById("slot-list");
+    const slotDialogOverlay=document.getElementById("slot-dialog-overlay");
+    const slotDialogTitle=document.getElementById("slot-dialog-title");
+    const slotDialogBody=document.getElementById("slot-dialog-body");
+    const slotDialogCancel=document.getElementById("slot-dialog-cancel");
+    const slotDialogOk=document.getElementById("slot-dialog-ok");
 
-        const number = document.createElement("div");
-        number.className = "slot-number";
-        number.textContent = (idx + 1).toString();
+    function renderSlotList(){
+      const saves=loadAllSaves();
+      slotListEl.innerHTML="";
+      for(let i=1;i<=5;i++){
+        const data=saves[i]||null;
+        const item=document.createElement("div");
+        item.className="slot-item"; item.dataset.slotId=i;
 
-        const textWrap = document.createElement("div");
-        textWrap.className = "slot-text";
+        const num=document.createElement("div");
+        num.className="slot-number"; num.textContent=i;
 
-        const main = document.createElement("div");
-        main.className = "slot-label-main";
-        main.textContent = slot ? gameStateToLabel(slot) : EMPTY_MESSAGE;
+        const main=document.createElement("div"); main.className="slot-main";
+        const title=document.createElement("div"); title.className="slot-title";
+        const meta=document.createElement("div"); meta.className="slot-meta";
 
-        textWrap.appendChild(main);
-
-        if (slot) {
-          const tag = document.createElement("div");
-          tag.className = "slot-meta-tag";
-          tag.textContent = "セーブ済み";
-          textWrap.appendChild(tag);
-        } else {
-          const sub = document.createElement("div");
-          sub.className = "slot-label-sub";
-          sub.textContent = "タップして新しい記録を作成";
-          textWrap.appendChild(sub);
+        if(!data){
+          title.textContent="まだ記録がないよ";
+          title.classList.add("slot-empty");
+          meta.textContent="";
+        }else{
+          const m=data.meta; const d=data.date;
+          title.textContent=`${m.schoolName}｜${data.progression.yearCount}年目`;
+          meta.textContent=`${d.year}年${d.month+1}月${d.day}日 時点`;
         }
 
-        item.appendChild(number);
-        item.appendChild(textWrap);
+        main.appendChild(title); main.appendChild(meta);
+        item.appendChild(num); item.appendChild(main);
+        item.addEventListener("click",()=>onSlotClicked(i,data));
+        slotListEl.appendChild(item);
+      }
+    }
 
-        item.addEventListener("click", () => onSlotClick(idx, slot));
-        list.appendChild(item);
+    let slotDialogMode=null;
+    let slotDialogTargetSlot=null;
+
+    function onSlotClicked(slotId,data){
+      slotDialogTargetSlot=slotId;
+      if(data){
+        slotDialogMode="load";
+        slotDialogTitle.textContent=`スロット${slotId}の記録で遊ぶ？`;
+        slotDialogBody.textContent=`${data.meta.schoolName}｜${data.progression.yearCount}年目｜${data.date.year}年${data.date.month+1}月${data.date.day}日 から再開します。`;
+      }else{
+        slotDialogMode="new";
+        slotDialogTitle.textContent=`スロット${slotId}に新しい記録を作る？`;
+        slotDialogBody.textContent="今のスロットにはまだ記録がありません。新しい高校で物語を始めます。";
+      }
+      slotDialogOverlay.style.display="flex";
+    }
+
+    slotDialogCancel.onclick=()=>{ slotDialogOverlay.style.display="none"; };
+    slotDialogOk.onclick=()=>{
+      slotDialogOverlay.style.display="none";
+      if(!slotDialogTargetSlot) return;
+      currentSlotId=slotDialogTargetSlot;
+      if(slotDialogMode==="load"){
+        gameState=loadSlot(currentSlotId);
+        goToHomeScreen();
+      }else{
+        showScreen("setup-screen");
+      }
+    };
+
+    const setupSchoolRow=document.getElementById("setup-school-row");
+    const setupSchoolNameEl=document.getElementById("setup-school-name");
+    const setupPrefRow=document.getElementById("setup-pref-row");
+    const setupPrefLabel=document.getElementById("setup-pref-label");
+    const setupPrefStars=document.getElementById("setup-pref-stars");
+    const setupCoachRow=document.getElementById("setup-coach-row");
+    const setupCoachNameEl=document.getElementById("setup-coach-name");
+    const setupStartBtn=document.getElementById("setup-start-btn");
+
+    let setupSchoolName="";
+    let setupPrefecture=null;
+    let setupPrefStarsValue=0;
+    let setupCoachName="";
+
+    const PREF_LIST = [
+  // 北海道・東北
+  { name: "北海道", stars: 3.6 },
+  { name: "青森県", stars: 3.0 },
+  { name: "岩手県", stars: 3.0 },
+  { name: "宮城県", stars: 3.6 },
+  { name: "秋田県", stars: 3.0 },
+  { name: "山形県", stars: 2.4 },
+  { name: "福島県", stars: 3.0 },
+
+  // 関東
+  { name: "茨城県", stars: 3.6 },
+  { name: "栃木県", stars: 3.6 },
+  { name: "群馬県", stars: 3.6 },
+  { name: "埼玉県", stars: 3.6 },
+  { name: "千葉県", stars: 4.2 },
+  { name: "東京都", stars: 5.0 },
+  { name: "神奈川県", stars: 5.0 },
+
+  // 中部
+  { name: "新潟県", stars: 2.4 },
+  { name: "富山県", stars: 2.4 },
+  { name: "石川県", stars: 3.0 },
+  { name: "福井県", stars: 3.6 },
+  { name: "山梨県", stars: 3.0 },
+  { name: "長野県", stars: 3.0 },
+  { name: "岐阜県", stars: 3.6 },
+  { name: "静岡県", stars: 3.6 },
+  { name: "愛知県", stars: 5.0 },
+
+  // 近畿
+  { name: "三重県", stars: 3.0 },
+  { name: "滋賀県", stars: 3.0 },
+  { name: "京都府", stars: 4.2 },
+  { name: "大阪府", stars: 5.0 },
+  { name: "兵庫県", stars: 5.0 },
+  { name: "奈良県", stars: 4.2 },
+  { name: "和歌山県", stars: 5.0 },
+
+  // 中国
+  { name: "鳥取県", stars: 3.0 },
+  { name: "島根県", stars: 3.0 },
+  { name: "岡山県", stars: 3.6 },
+  { name: "広島県", stars: 4.2 },
+  { name: "山口県", stars: 3.6 },
+
+  // 四国
+  { name: "徳島県", stars: 3.6 },
+  { name: "香川県", stars: 3.6 },
+  { name: "愛媛県", stars: 4.2 },
+  { name: "高知県", stars: 4.2 },
+
+  // 九州・沖縄
+  { name: "福岡県", stars: 4.2 },
+  { name: "佐賀県", stars: 2.4 },
+  { name: "長崎県", stars: 3.0 },
+  { name: "熊本県", stars: 3.0 },  // 元データになかったので仮
+  { name: "大分県", stars: 3.6 },
+  { name: "宮崎県", stars: 3.0 },
+  { name: "鹿児島県", stars: 3.6 },
+  { name: "沖縄県", stars: 3.0 }   // 元データになかったので仮
+];
+
+
+    function starsToText(stars){
+      const r=Math.round(stars); let s="";
+      for(let i=0;i<5;i++) s+=i<r?"★":"☆";
+      return s;
+    }
+
+    function updateSetupStartButton(){
+      setupStartBtn.disabled=!(setupSchoolName && setupPrefecture && setupCoachName);
+    }
+
+    function openSimpleInputDialog(title,placeholder,initial,cb){
+      const overlay=document.createElement("div");
+      overlay.className="dialog-overlay"; overlay.style.display="flex";
+      const dlg=document.createElement("div");
+      dlg.className="dialog";
+      dlg.innerHTML=`
+        <div class="dialog-title">${title}</div>
+        <div class="dialog-body"><input class="input-inline" id="simple-input" placeholder="${placeholder}" value="${initial||""}"></div>
+        <div class="dialog-actions">
+          <button class="btn-dialog" id="simple-cancel">キャンセル</button>
+          <button class="btn-dialog btn-dialog-primary" id="simple-ok">OK</button>
+        </div>`;
+      overlay.appendChild(dlg); document.body.appendChild(overlay);
+      const input=dlg.querySelector("#simple-input"); input.focus(); input.select();
+      dlg.querySelector("#simple-cancel").onclick=()=>{document.body.removeChild(overlay);};
+      dlg.querySelector("#simple-ok").onclick=()=>{
+        const v=input.value.trim(); if(v) cb(v); document.body.removeChild(overlay);
+      };
+    }
+
+    function openPrefSelectDialog(){
+      const overlay=document.createElement("div");
+      overlay.className="dialog-overlay"; overlay.style.display="flex";
+      const dlg=document.createElement("div");
+      dlg.className="dialog"; dlg.style.maxHeight="70vh"; dlg.style.overflow="hidden";
+      dlg.innerHTML=`
+        <div class="dialog-title">都道府県を選択</div>
+        <div class="dialog-body" style="max-height:46vh; overflow-y:auto; font-size:13px;"></div>
+        <div class="dialog-actions"><button class="btn-dialog" id="pref-cancel">閉じる</button></div>`;
+      overlay.appendChild(dlg); document.body.appendChild(overlay);
+      const list=dlg.querySelector(".dialog-body");
+      PREF_LIST.forEach(p=>{
+        const row=document.createElement("div");
+        row.style.padding="4px 0";
+        row.style.display="flex";
+        row.style.justifyContent="space-between";
+        row.style.cursor="pointer";
+        row.innerHTML=`<span>${p.name}</span><span>${starsToText(p.stars)}</span>`;
+        row.onclick=()=>{
+          setupPrefecture=p.name; setupPrefStarsValue=p.stars;
+          setupPrefLabel.textContent=p.name;
+          setupPrefLabel.classList.remove("setup-placeholder");
+          setupPrefStars.textContent=`${p.name}｜${starsToText(p.stars)}`;
+          document.body.removeChild(overlay);
+          updateSetupStartButton();
+        };
+        list.appendChild(row);
       });
+      dlg.querySelector("#pref-cancel").onclick=()=>{document.body.removeChild(overlay);};
     }
 
-    // ===========================================
-    //  スロットクリック → 確認ダイアログ
-    // ===========================================
-    const slotConfirmOverlay = document.getElementById("slotConfirmOverlay");
-    const slotConfirmTitleEl = document.getElementById("slotConfirmTitle");
-    const slotConfirmMessageEl = document.getElementById("slotConfirmMessage");
-    const slotConfirmYesBtn = document.getElementById("slotConfirmYes");
-    const slotConfirmNoBtn = document.getElementById("slotConfirmNo");
-
-    let pendingSlotIndex = null;
-    let pendingSlotState = null;
-
-    function onSlotClick(index, slotState) {
-      pendingSlotIndex = index;
-      pendingSlotState = slotState || null;
-
-      if (slotState) {
-        slotConfirmTitleEl.textContent = `スロット ${index + 1}`;
-        slotConfirmMessageEl.innerHTML =
-          `${gameStateToLabel(slotState)}<br>この記録を始めますか？`;
-      } else {
-        slotConfirmTitleEl.textContent = `スロット ${index + 1}`;
-        slotConfirmMessageEl.textContent = "新しい記録を作りますか？";
-      }
-
-      slotConfirmOverlay.classList.add("active");
-    }
-
-    slotConfirmYesBtn.addEventListener("click", () => {
-      slotConfirmOverlay.classList.remove("active");
-      if (pendingSlotIndex == null) return;
-
-      if (!pendingSlotState) {
-        // 新規作成 → 初期設定画面へ
-        currentSlotIndex = pendingSlotIndex;
-        currentGameState = createNewGameState(pendingSlotIndex);
-        showInitialSettingsScreen();
-      } else {
-        // 既存データ読み込み → そのままゲーム画面へ
-        currentGameState = deepClone(pendingSlotState);
-        currentSlotIndex = pendingSlotIndex;
-        applyGameStateToUI(currentGameState);
-        showGameScreen();
-        renderSaveSlots();
-      }
-    });
-
-    slotConfirmNoBtn.addEventListener("click", () => {
-      slotConfirmOverlay.classList.remove("active");
-      pendingSlotIndex = null;
-      pendingSlotState = null;
-    });
-
-    // ===========================================
-    //  初期設定画面関連
-    // ===========================================
-    const saveScreenEl = document.getElementById("saveScreen");
-    const initialSettingsScreenEl = document.getElementById("initialSettingsScreen");
-    const gameScreenEl = document.getElementById("gameScreen");
-
-    const settingSchoolValueEl = document.getElementById("settingSchoolValue");
-    const settingPrefValueEl = document.getElementById("settingPrefValue");
-    const settingManagerValueEl = document.getElementById("settingManagerValue");
-    const btnInitialStart = document.getElementById("btnInitialStart");
-
-    const settingSchoolRow = document.getElementById("settingSchoolRow");
-    const settingPrefRow = document.getElementById("settingPrefRow");
-    const settingManagerRow = document.getElementById("settingManagerRow");
-
-    const prefOverlay = document.getElementById("prefOverlay");
-    const prefListEl = document.getElementById("prefList");
-
-    function showInitialSettingsScreen() {
-      saveScreenEl.classList.remove("active");
-      gameScreenEl.classList.remove("active");
-      initialSettingsScreenEl.classList.add("active");
-
-      if (!currentGameState) {
-        currentGameState = createNewGameState(currentSlotIndex ?? 0);
-      }
-
-      // フィールド反映
-      settingSchoolValueEl.textContent = currentGameState.schoolName || "○○高校";
-
-      if (currentGameState.prefecture && currentGameState.prefectureStars) {
-        settingPrefValueEl.textContent =
-          `${currentGameState.prefecture}｜強さ${currentGameState.prefectureStars}`;
-      } else {
-        settingPrefValueEl.textContent = "未選択";
-      }
-
-      settingManagerValueEl.textContent = currentGameState.managerName || "監督";
-
-      updateInitialStartButton();
-    }
-
-    function updateInitialStartButton() {
-      const ready =
-        currentGameState &&
-        currentGameState.schoolName &&
-        currentGameState.managerName &&
-        currentGameState.prefecture &&
-        currentGameState.prefectureStars;
-
-      btnInitialStart.disabled = !ready;
-    }
-
-    // 高校名入力
-    settingSchoolRow.addEventListener("click", () => {
-      if (!currentGameState) return;
-      const name = window.prompt("高校名を入力してください", currentGameState.schoolName || "");
-      if (name && name.trim().length > 0) {
-        currentGameState.schoolName = name.trim();
-        settingSchoolValueEl.textContent = currentGameState.schoolName;
-        updateInitialStartButton();
-      }
-    });
-
-    // 監督名入力
-    settingManagerRow.addEventListener("click", () => {
-      if (!currentGameState) return;
-      const name = window.prompt("監督名を入力してください", currentGameState.managerName || "");
-      if (name && name.trim().length > 0) {
-        currentGameState.managerName = name.trim();
-        settingManagerValueEl.textContent = currentGameState.managerName;
-        updateInitialStartButton();
-      }
-    });
-
-    // 都道府県リスト生成
-    function renderPrefectureList() {
-      prefListEl.innerHTML = "";
-      PREFS.forEach((p) => {
-        const btn = document.createElement("button");
-        btn.className = "pref-option";
-        btn.innerHTML = `
-          <span class="pref-option-main">${p.label}｜強さ${p.stars}</span>
-          <span class="pref-option-sub">タップして決定</span>
-        `;
-        btn.addEventListener("click", () => {
-          if (!currentGameState) return;
-          currentGameState.prefecture = p.label;
-          currentGameState.prefectureStars = p.stars;
-          settingPrefValueEl.textContent = `${p.label}｜強さ${p.stars}`;
-          updateInitialStartButton();
-          prefOverlay.classList.remove("active");
-        });
-        prefListEl.appendChild(btn);
+    setupSchoolRow.onclick=()=>{
+      openSimpleInputDialog("高校名を入力","例）わんわん",setupSchoolName,v=>{
+        setupSchoolName=v;
+        setupSchoolNameEl.textContent=`${v}高校`;
+        setupSchoolNameEl.classList.remove("setup-placeholder");
+        updateSetupStartButton();
       });
+    };
+    setupPrefRow.onclick=openPrefSelectDialog;
+    setupCoachRow.onclick=()=>{
+      openSimpleInputDialog("監督名を入力","例）山田",setupCoachName,v=>{
+        setupCoachName=v;
+        setupCoachNameEl.textContent=`${v} 監督`;
+        setupCoachNameEl.classList.remove("setup-placeholder");
+        updateSetupStartButton();
+      });
+    };
+    setupStartBtn.onclick=()=>{
+      gameState=createNewGameState(currentSlotId,setupSchoolName+"高校",setupPrefecture,setupPrefStarsValue,setupCoachName);
+      saveSlot(currentSlotId,gameState);
+      goToHomeScreen();
+    };
+
+    function showScreen(id){
+      document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
     }
 
-    // 都道府県選択を開く
-    settingPrefRow.addEventListener("click", () => {
-      prefOverlay.classList.add("active");
-    });
+    const homeHeaderTitle=document.getElementById("home-header-title");
+    const homeHeaderSub=document.getElementById("home-header-sub");
+    const homeHeaderDate=document.getElementById("home-header-date");
+    const homeHeaderSeason=document.getElementById("home-header-season");
+    const homeLog=document.getElementById("home-log");
+    const cardRowTop=document.getElementById("card-row-top");
+    const cardExecuteBtn=document.getElementById("card-execute");
+    const miniCalLabel=document.getElementById("mini-calendar-label");
+    const miniCalDay=document.getElementById("mini-calendar-day");
+    const miniCalBox=document.getElementById("home-calendar-mini");
 
-    // オーバーレイ外側タップで閉じる
-    prefOverlay.addEventListener("click", (e) => {
-      if (e.target === prefOverlay) {
-        prefOverlay.classList.remove("active");
+    function goToHomeScreen(){
+      const m=gameState.meta;
+      const d=currentDateObj(gameState);
+      homeHeaderTitle.textContent=m.schoolName;
+      homeHeaderSub.textContent=`${m.prefecture}｜${m.coachName}監督`;
+      homeHeaderDate.textContent=formatDateJP(d);
+
+      const month=d.getMonth()+1;
+      let season="日々の鍛錬期間";
+      if(month===3) season="春の選抜シーズン";
+      else if(month===7||month===8) season="夏の大会シーズン";
+      else if(month===11) season="神宮大会シーズン";
+      homeHeaderSeason.textContent=season;
+
+      updateMiniCalendarDisplay();
+      generatePracticeCards();
+      homeLog.textContent="カードを選んで「実行」を押すと日付が進みます。";
+      showScreen("home-screen");
+    }
+
+    function updateMiniCalendarDisplay(){
+      const d=currentDateObj(gameState);
+      miniCalLabel.textContent=`${d.getFullYear()}年${d.getMonth()+1}月`;
+      miniCalDay.textContent=`${d.getDate()}日（${weekdayName(d.getDay())}）`;
+    }
+    // 指定した「何日後」のマス色を、カレンダーから取得する。
+// イベントが入っている日は色なし扱いで "white" を返す。
+function getTileColorForOffset(days) {
+  const from = currentDateObj(gameState);
+  const target = new Date(from.getFullYear(), from.getMonth(), from.getDate() + days);
+
+  // 対象月のタイルがまだ生成されていなければ生成
+  ensureCalendarTilesForMonth(target.getFullYear(), target.getMonth());
+
+  const monthKey = `${target.getFullYear()}-${target.getMonth() + 1}`;
+  const tiles = gameState.calendar[monthKey] || {};
+  const tile = tiles[target.getDate()] || { color: "white" };
+
+  // その日がイベント日なら、色は付けない（＝white扱い）
+  const dateKey = `${target.getFullYear()}-${target.getMonth() + 1}-${target.getDate()}`;
+  const schedule = gameState.schedules[dateKey];
+  if (schedule) {
+    return "white";
+  }
+
+  return tile.color || "white";
+}
+
+
+    const PRACTICE_CARD_DEFS=[
+      {name:"素振り",type:"fielder-weak",stat:"contact"},
+      {name:"トスバッティング",type:"fielder-strong",stat:"contact"},
+      {name:"腕立て",type:"fielder-weak",stat:"power"},
+      {name:"ダンベル",type:"fielder-strong",stat:"power"},
+      {name:"ダッシュ",type:"fielder-weak",stat:"run"},
+      {name:"ベースランニング",type:"fielder-strong",stat:"run"},
+      {name:"キャッチボール",type:"fielder-weak",stat:"arm"},
+      {name:"遠投",type:"fielder-strong",stat:"arm"},
+      {name:"守備連携",type:"fielder-weak",stat:"defense"},
+      {name:"シートノック",type:"fielder-strong",stat:"defense"},
+      {name:"球速測定",type:"pitcher-weak",stat:"speed"},
+      {name:"マッスラー",type:"pitcher-strong",stat:"speed"},
+      {name:"変化球助言",type:"pitcher-weak",stat:"breaking"},
+      {name:"変化球投げ込み",type:"pitcher-strong",stat:"breaking"},
+      {name:"走り込み",type:"pitcher-weak",stat:"stamina"},
+      {name:"投げ込み",type:"pitcher-strong",stat:"stamina"},
+      {name:"練習休み",type:"other-rest"},
+      {name:"癒やしの一時",type:"other-bigrest"},
+      {name:"スケジュール見直し",type:"other-reroll"},
+      {name:"紅白戦",type:"other-scrimmage"}
+    ];
+    // 指定した「何日後」のマス色を、カレンダーから取得する。
+// イベントが入っている日は色なし扱いで "white" を返す。
+function getForOffset(days) {
+  const from = currentDateObj(gameState);
+  const target = new Date(from.getFullYear(), from.getMonth(), from.getDate() + days);
+
+  // 対象月のタイルがまだ生成されていなければ生成
+  ensureCalendarTilesForMonth(target.getFullYear(), target.getMonth());
+
+  const monthKey = `${target.getFullYear()}-${target.getMonth() + 1}`;
+  const tiles = gameState.calendar[monthKey] || {};
+  const tile = tiles[target.getDate()] || { color: "white" };
+
+  // その日がイベント日なら、色は付けない（＝white扱い）
+  const dateKey = `${target.getFullYear()}-${target.getMonth() + 1}-${target.getDate()}`;
+  const schedule = gameState.schedules[dateKey];
+  if (schedule) {
+    return "white";
+  }
+
+  return tile.color || "white";
+}
+
+    
+    let currentCards=[];
+
+// ← ①で追加した getTileColorForOffset(days) はこの少し上あたりにあるはず
+
+function createRandomCard(){
+  const isPractice = Math.random() < 0.75;
+  let candidates;
+  if (isPractice) {
+    candidates = PRACTICE_CARD_DEFS.filter(
+      d => d.type.startsWith("fielder") || d.type.startsWith("pitcher")
+    );
+  } else {
+    candidates = PRACTICE_CARD_DEFS.filter(d => d.type.startsWith("other"));
+  }
+
+  const base = sample(candidates);
+  const days = isPractice ? randInt(1, 5) : 1; // その他は必ず1日
+
+  let desc = "";
+  if (base.type.includes("fielder")) desc = "野手練習";
+  else if (base.type.includes("pitcher")) desc = "投手練習";
+  else if (base.type === "other-rest") desc = "全員休養";
+  else if (base.type === "other-bigrest") desc = "しっかり休養";
+  else if (base.type === "other-reroll") desc = "カードを引き直す";
+  else if (base.type === "other-scrimmage") desc = "紅白戦";
+
+  // ★ 進んだ先の日付のマス色をカレンダーから取得してカード色にする
+  const tileColor = getTileColorForOffset(days);
+
+  return { ...base, days, desc, tileColor };
+}
+
+
+
+    // currentCards の内容をもとにカードを描画するだけの関数
+function renderPracticeCards() {
+  cardRowTop.innerHTML = "";
+
+  currentCards.forEach((card, i) => {
+    const el = document.createElement("div");
+    el.className = `practice-card card-color-${card.tileColor}`;
+    el.dataset.index = i;
+
+    const title = document.createElement("div");
+    title.className = "practice-name";
+    title.textContent = card.name;
+
+    const detail = document.createElement("div");
+    detail.className = "practice-detail";
+    detail.textContent = card.desc;
+
+    const meta = document.createElement("div");
+    meta.className = "practice-meta";
+    meta.textContent = `${card.days}日`;
+
+    el.appendChild(title);
+    el.appendChild(detail);
+    el.appendChild(meta);
+
+    el.onclick = () => {
+      document.querySelectorAll(".practice-card").forEach(c => c.classList.remove("selected"));
+      el.classList.add("selected");
+      selectedCardIndex = i;
+    };
+
+    // 選択中のカードにだけ selected を付ける
+    if (i === selectedCardIndex) {
+      el.classList.add("selected");
+    }
+
+    cardRowTop.appendChild(el);
+  });
+}
+
+// 最初に8枚まとめて作るときだけ使う
+function generatePracticeCards() {
+  currentCards = [];
+  for (let i = 0; i < 8; i++) {
+    currentCards.push(createRandomCard());
+  }
+  selectedCardIndex = 0; // 最初は左上を選択
+  renderPracticeCards();
+}
+
+
+    cardExecuteBtn.onclick=()=>{
+      if(!currentCards.length) return;
+      const card=currentCards[selectedCardIndex]||currentCards[0];
+      if(!card) return;
+      executeCard(card);
+    };
+
+    function executeCard(card){
+  const dBefore = currentDateObj(gameState);
+  homeLog.textContent = `${formatDateJP(dBefore)}：${card.name} を設定しました。`;
+
+  // 日付進行＆イベント処理
+  advanceWithCard(card);
+  saveSlot(currentSlotId, gameState);
+  updateMiniCalendarDisplay();
+
+  const dAfter = currentDateObj(gameState);
+  homeHeaderDate.textContent = formatDateJP(dAfter);
+
+  // ★ 今使ったカードだけ新しいカードに差し替える
+  currentCards[selectedCardIndex] = createRandomCard();
+
+  // ★ currentCards をもとに描画し直し（他のカードはそのまま）
+  renderPracticeCards();
+}
+
+
+    /* カレンダー */
+    // ★ カレンダーで進めて良い「最大の月」を決める（共通関数）
+function getCalendarMaxMonth(now) {
+  const y = now.getFullYear();
+  const m = now.getMonth(); // 0:1月, 1:2月, 2:3月, 3:4月...
+
+  if (m === 2) {
+    // 今が3月のときだけ、さらに先の「翌年4月」まで見える
+    return { maxYear: y + 1, maxMonth: 3 }; // 0-based なので 3 = 4月
+  } else {
+    // それ以外は「翌年3月」まで
+    return { maxYear: y + 1, maxMonth: 2 }; // 2 = 3月
+  }
+}
+
+
+    const calendarScreen=document.getElementById("calendar-screen");
+    const calendarMonthLabel=document.getElementById("calendar-month-label");
+    const calendarDaysEl=document.getElementById("calendar-days");
+    const calPrevBtn=document.getElementById("cal-prev");
+    const calNextBtn=document.getElementById("cal-next");
+    const calBackBtn=document.getElementById("calendar-back");
+
+    miniCalBox.onclick=()=>{
+      const d=currentDateObj(gameState);
+      calendarViewYear=d.getFullYear();
+      calendarViewMonth=d.getMonth();
+      renderCalendar();
+      showScreen("calendar-screen");
+    };
+    calBackBtn.onclick=()=>showScreen("home-screen");
+
+    calPrevBtn.onclick=()=>{
+      // カレンダーで進めて良い「最大の月」を決める
+function getCalendarMaxMonth(now) {
+  const y = now.getFullYear();
+  const m = now.getMonth(); // 0:1月, 1:2月, 2:3月, 3:4月...
+
+  if (m === 2) {
+    // 今が3月のときだけ、さらに先の「翌年4月」まで見える
+    return { maxYear: y + 1, maxMonth: 3 }; // 0-based なので 3 = 4月
+  } else {
+    // それ以外は「翌年3月」まで
+    return { maxYear: y + 1, maxMonth: 2 }; // 2 = 3月
+  }
+}
+
+      const now=currentDateObj(gameState);
+      const view=new Date(calendarViewYear,calendarViewMonth,1);
+      const prev=new Date(view.getFullYear(),view.getMonth()-1,1);
+      const limit=new Date(now.getFullYear(),now.getMonth()-1,1);
+      if(prev<limit) return;
+      calendarViewYear=prev.getFullYear();
+      calendarViewMonth=prev.getMonth();
+      renderCalendar();
+    };
+
+calNextBtn.onclick = () => {
+  const now = currentDateObj(gameState);
+  const view = new Date(calendarViewYear, calendarViewMonth, 1);
+  const next = new Date(view.getFullYear(), view.getMonth() + 1, 1);
+
+  // ★「このセーブデータで見ていい最大の月」を取得
+  const limitInfo = getCalendarMaxMonth(now);
+  const limit = new Date(limitInfo.maxYear, limitInfo.maxMonth, 1);
+
+  // ★これ以上先は進めない
+  if (next > limit) return;
+
+  calendarViewYear = next.getFullYear();
+  calendarViewMonth = next.getMonth();
+  renderCalendar();
+};
+
+
+    function renderCalendar(){
+      const year=calendarViewYear;
+      const month=calendarViewMonth;
+      const first=new Date(year,month,1);
+      const last=new Date(year,month+1,0);
+      const today=currentDateObj(gameState);
+
+      calendarMonthLabel.textContent=`${year}年｜${month+1}月`;
+      ensureCalendarTilesForMonth(year,month);
+      const key=`${year}-${month+1}`;
+      const tiles=gameState.calendar[key]||{};
+
+      calendarDaysEl.innerHTML="";
+      const offset=first.getDay();
+      const daysInMonth=last.getDate();
+
+      const now=currentDateObj(gameState);
+      const thisMonthKey=now.getFullYear()*12+now.getMonth();
+      const viewKey=year*12+month;
+      const canSeeColors=(viewKey===thisMonthKey)||(viewKey===thisMonthKey+1);
+
+for (let day = 1; day <= daysInMonth; day++) {
+  const date = new Date(year, month, day);
+  const cell = document.createElement("div");
+  cell.className = "cal-day";
+
+  const header = document.createElement("div");
+  header.className = "cal-day-header";
+
+  const numSpan = document.createElement("div");
+  numSpan.className = "cal-day-number";
+  numSpan.textContent = day;
+
+  const todayTag = document.createElement("div");
+  if (date.toDateString() === today.toDateString()) {
+    todayTag.className = "cal-day-today";
+    todayTag.textContent = "今日";
+  }
+
+  const colorDot = document.createElement("div");
+  colorDot.className = "cal-day-color-dot";
+
+  // ★ 先にこの日の schedule を取得
+  const dateKey = `${year}-${month + 1}-${day}`;
+  const schedule = gameState.schedules[dateKey];
+
+    const tileInfo = tiles[day] || {};
+  const color = tileInfo.color || "white";
+
+  // ★ この日が「何かしらのイベント日」かどうか（公式戦・練習試合・スカウト・試験・合宿・式典など）
+  const isEventDay = !!schedule;
+
+  // ★ イベント日 → 色を付けない（マス効果も発動しない扱い）
+  //    それ以外 → 今月/来月だけマス全体に色を付ける
+  if (!isEventDay && canSeeColors) {
+    colorDot.classList.add(`cal-bg-${color}`);
+    cell.classList.add(`cal-bg-${color}`);
+  } else {
+    colorDot.style.background = "transparent";
+    colorDot.style.borderColor = "rgba(255,255,255,0.08)";
+  }
+
+
+  header.appendChild(numSpan);
+  if (todayTag.textContent) header.appendChild(todayTag);
+  header.appendChild(colorDot);
+
+  const content = document.createElement("div");
+  content.className = "cal-day-content";
+
+  // ★ ここから下は今まで通り（schedule をもう一度定義しないように注意）
+  if (schedule) {
+    if (schedule.type === "official") content.textContent = schedule.label || "公式戦";
+    else if (schedule.type === "practice_match") content.textContent = "練習試合";
+    else if (schedule.type === "scout") content.textContent = "スカウト";
+    else if (schedule.type === "exam") content.textContent = "期末試験";
+    else if (schedule.type === "camp") content.textContent = schedule.label || "合宿";
+    else if (schedule.type === "ceremony") content.textContent = schedule.label || "式典";
+  }
+
+  cell.appendChild(header);
+  cell.appendChild(content);
+
+  if (schedule) {
+    const iconWrap = document.createElement("div");
+    iconWrap.className = "cal-day-event-icon";
+    const img = document.createElement("img");
+    if (schedule.type === "official") img.src = "E公式戦.jpg";
+    else if (schedule.type === "practice_match") img.src = "E練習試合.jpg";
+    else if (schedule.type === "scout") img.src = "Eスカウト.jpg";
+    else if (schedule.type === "ceremony") img.src = (schedule.subType === "graduation" ? "E卒業式.jpg" : "E入学式.jpg");
+    else if (schedule.type === "exam") img.src = "E試験.jpg";
+    else if (schedule.type === "camp") img.src = "E走り込み.gif";
+    iconWrap.appendChild(img);
+    cell.appendChild(iconWrap);
+  }
+
+  cell.onclick = () => onCalendarDayClicked(year, month, day);
+  calendarDaysEl.appendChild(cell);
+}
+
+    }
+
+    function ensureCalendarTilesForMonth(year,month){
+      const key=`${year}-${month+1}`;
+      if(!gameState.calendar[key]){
+        const first=new Date(year,month,1);
+        const last=new Date(year,month+1,0);
+        const daysInMonth=last.getDate();
+        const tiles={};
+        let baseballUsed=false;
+        for(let d=1;d<=daysInMonth;d++){
+          const color=randomTileColorForMonth(baseballUsed);
+          if(color==="baseball") baseballUsed=true;
+          tiles[d]={color};
+        }
+        gameState.calendar[key]=tiles;
+        ensureFixedSchedulesForYear(year);
       }
-    });
-
-    // 「はじめる」ボタン
-    btnInitialStart.addEventListener("click", () => {
-      if (!currentGameState || currentSlotIndex == null || btnInitialStart.disabled) return;
-
-      // セーブスロットに保存
-      saveSlots[currentSlotIndex] = deepClone(currentGameState);
-      saveSaveSlots();
-      renderSaveSlots();
-
-      applyGameStateToUI(currentGameState);
-      showGameScreen();
-    });
-
-    // ===========================================
-    //  ゲーム本編UIへ反映
-    // ===========================================
-    function applyGameStateToUI(state) {
-      if (!state) return;
-      document.getElementById("schoolName").textContent = state.schoolName;
-      document.getElementById("seasonLabel").textContent = state.seasonLabel;
-      document.getElementById("generationText").textContent = state.generation;
-      document.getElementById("reputationText").textContent = state.reputation;
-
-      const dateText = `春・${state.month}月${state.day}日`;
-      document.getElementById("currentDateText").textContent = dateText;
     }
 
-    function showGameScreen() {
-      saveScreenEl.classList.remove("active");
-      initialSettingsScreenEl.classList.remove("active");
-      gameScreenEl.classList.add("active");
+    function randomTileColorForMonth(baseballUsed){
+      const r=Math.random()*100;
+      if(!baseballUsed && r>=95) return "baseball";
+      if(r<40) return "white";
+      if(r<55) return "blue";
+      if(r<70) return "red";
+      if(r<85) return "yellow";
+      return "green";
     }
 
-    // ===========================================
-    //  タブ切り替え処理
-    // ===========================================
-    const tabButtons = document.querySelectorAll(".tab-button");
-    const tabViews = document.querySelectorAll(".tab-view");
+    function ensureFixedSchedulesForYear(year){
+      if(gameState.system[`fixed-${year}`]) return;
 
-    tabButtons.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const target = btn.dataset.tab;
-
-        tabButtons.forEach((b) => b.classList.remove("active"));
-        tabViews.forEach((view) => view.classList.remove("active"));
-
-        btn.classList.add("active");
-        document.getElementById(`tab-${target}`).classList.add("active");
-      });
-    });
-
-    // ===========================================
-    //  予定リスト描画
-    // ===========================================
-    function renderSchedule() {
-      const list = document.getElementById("scheduleList");
-      list.innerHTML = "";
-
-      scheduleData.forEach((item) => {
-        const li = document.createElement("li");
-        li.className = "schedule-item";
-
-        const left = document.createElement("div");
-        left.innerHTML = `<strong>${item.day}</strong>：${item.detail}`;
-
-        const right = document.createElement("div");
-        right.innerHTML = `<span class="schedule-label ${item.type}">
-          ${item.label}
-        </span>`;
-
-        li.appendChild(left);
-        li.appendChild(right);
-        list.appendChild(li);
-      });
-    }
-
-    // ===========================================
-    //  選手リスト描画
-    // ===========================================
-    function renderPlayers() {
-      const container = document.getElementById("playerList");
-      container.innerHTML = "";
-
-      const header = document.createElement("div");
-      header.className = "player-row header";
-      header.innerHTML = `
-        <div>選手</div>
-        <div>学年</div>
-        <div>ポジ</div>
-        <div>調子</div>
-      `;
-      container.appendChild(header);
-
-      players.forEach((p) => {
-        const row = document.createElement("div");
-        row.className = "player-row";
-        row.innerHTML = `
-          <div class="player-name">${p.name}</div>
-          <div class="player-grade">${p.grade}</div>
-          <div class="chip">${p.position}</div>
-          <div class="chip">${p.mood}</div>
-        `;
-        container.appendChild(row);
-      });
-    }
-
-    // ===========================================
-    //  練習メニュー描画
-    // ===========================================
-    let selectedTrainingId = null;
-
-    function renderTrainings() {
-      const grid = document.getElementById("trainingGrid");
-      grid.innerHTML = "";
-
-      trainings.forEach((t) => {
-        const card = document.createElement("div");
-        card.className = "training-card";
-        card.dataset.id = t.id;
-        card.innerHTML = `
-          <div class="training-name">${t.name}</div>
-          <div class="training-meta">
-            <span>コスト：${t.cost}</span>
-            <span>疲労：${t.fatigue}</span>
-          </div>
-          <div class="training-desc">${t.desc}</div>
-        `;
-
-        card.addEventListener("click", () => {
-          selectedTrainingId = t.id;
-          document
-            .querySelectorAll(".training-card")
-            .forEach((c) => c.classList.remove("selected"));
-          card.classList.add("selected");
-          document.getElementById("selectedTrainingName").textContent = t.name;
-        });
-
-        grid.appendChild(card);
-      });
-    }
-
-    // 練習メニュー選択（ダミー処理）
-    document.getElementById("applyTrainingBtn").addEventListener("click", () => {
-      if (!selectedTrainingId) {
-        alert("練習メニューを選択してください。");
-        return;
+      const july=6;
+      const summerRounds=[
+        nthWeekdayOfMonth(year,july,6,1),
+        nthWeekdayOfMonth(year,july,6,2),
+        nthWeekdayOfMonth(year,july,6,3),
+        nthWeekdayOfMonth(year,july,0,3),
+      ];
+      if(gameState.meta.prefectureStars>=3){
+        summerRounds.push(nthWeekdayOfMonth(year,july,0,4));
       }
-      const t = trainings.find((x) => x.id === selectedTrainingId);
-      alert(
-        `「${t.name}」で進行しました。\n\n※今はダミーなので、あとでステータス変化やイベント処理を追加していけます。`
-      );
-    });
+      summerRounds.forEach((dt,idx)=>{
+        registerSchedule(dt,{type:"official",label:`夏・県大会${idx+1}回戦`,tournament:"summer"});
+      });
 
-    // ===========================================
-    //  日付進行ボタン（今は説明用ダミー）
-    // ===========================================
-    document.getElementById("btnNextDay").addEventListener("click", () => {
-      alert("1日進行（ダミー）。\n\nここに日付・予定・イベント処理などを実装していく想定。");
-    });
+      [10,15,18,20,22,23].forEach((day,idx)=>{
+        const dt=new Date(year,7,day);
+        registerSchedule(dt,{type:"official",label:`夏の甲子園 ${idx+1}試合目`,tournament:"summer-koshien"});
+      });
 
-    document.getElementById("btnPrevDay").addEventListener("click", () => {
-      alert("前の日に戻る（ダミー）。\n\n戻すかどうか、実際の仕様に合わせてあとで調整。");
-    });
+      const sept=8;
+      const d1=nthWeekdayOfMonth(year,sept,6,2);
+      const d2=nthWeekdayOfMonth(year,sept,1,3);
+      registerSchedule(d1,{type:"official",label:"秋・県代表戦①",tournament:"autumn-pref"});
+      registerSchedule(d2,{type:"official",label:"秋・県代表戦②",tournament:"autumn-pref"});
 
-    document.getElementById("btnAuto").addEventListener("click", () => {
-      alert("おまかせ進行（ダミー）。\n\nAIに任せるモードなども作れそう。");
-    });
+      const oct=9;
+      const d3=nthWeekdayOfMonth(year,oct,6,3);
+      const d4=nthWeekdayOfMonth(year,oct,1,4);
+      registerSchedule(d3,{type:"official",label:"秋・地区代表戦①",tournament:"autumn-area"});
+      registerSchedule(d4,{type:"official",label:"秋・地区代表戦②",tournament:"autumn-area"});
 
-    // ===========================================
-    //  初期化
-    // ===========================================
-    function init() {
-      loadSaveSlots();
-      renderSaveSlots();
-      renderSchedule();
-      renderPlayers();
-      renderTrainings();
-      renderPrefectureList();
+      [17,20,21].forEach((day,idx)=>{
+        const dt=new Date(year,10,day);
+        registerSchedule(dt,{type:"official",label:`神宮大会 ${idx+1}試合目`,tournament:"jingu"});
+      });
+
+      [17,22,25,27,29,30].forEach((day,idx)=>{
+        const dt=new Date(year+1,2,day);
+        registerSchedule(dt,{type:"official",label:`春の甲子園 ${idx+1}試合目`,tournament:"spring-koshien"});
+      });
+
+      const entrance=secondMondayOfApril(year);
+      registerSchedule(entrance,{type:"ceremony",subType:"entrance",label:"入学式"});
+
+      const grad=secondFridayOfMarch(year);
+      registerSchedule(grad,{type:"ceremony",subType:"graduation",label:"卒業式"});
+
+      const july2mon=nthWeekdayOfMonth(year,6,1,2);
+      for(let i=0;i<5;i++){
+        const dt=new Date(year,6,july2mon.getDate()+i);
+        registerSchedule(dt,{type:"exam",label:"期末試験（夏）"});
+      }
+      const july4mon=nthWeekdayOfMonth(year,6,1,4);
+      for(let i=0;i<5;i++){
+        const dt=new Date(year,6,july4mon.getDate()+i);
+        registerSchedule(dt,{type:"camp",label:"夏合宿"});
+      }
+
+      const dec=11;
+      const dec1mon=nthWeekdayOfMonth(year,dec,1,1);
+      for(let i=0;i<5;i++){
+        const dt=new Date(year,dec,dec1mon.getDate()+i);
+        registerSchedule(dt,{type:"exam",label:"期末試験（冬）"});
+      }
+      const dec3mon=nthWeekdayOfMonth(year,dec,1,3);
+      for(let i=0;i<5;i++){
+        const dt=new Date(year,dec,dec3mon.getDate()+i);
+        registerSchedule(dt,{type:"camp",label:"冬合宿"});
+      }
+
+      gameState.system[`fixed-${year}`]=true;
     }
 
-    init();
+    function registerSchedule(dateObj,info){
+      const key=`${dateObj.getFullYear()}-${dateObj.getMonth()+1}-${dateObj.getDate()}`;
+      if(!gameState.schedules[key]) gameState.schedules[key]=info;
+    }
+
+    function onCalendarDayClicked(year,month,day){
+      const date=new Date(year,month,day);
+      const now=currentDateObj(gameState);
+      const dateKey=`${year}-${month+1}-${day}`;
+      const schedule=gameState.schedules[dateKey];
+
+      if(date<now) return;
+
+      const diffDays=Math.floor((date-now)/(1000*60*60*24));
+      const weekday=date.getDay();
+      const isWeekend=(weekday===0||weekday===6);
+      const m=date.getMonth()+1;
+      const isNovToJanScout=(m===11||m===12||m===1);
+
+      const overlay=document.createElement("div");
+      overlay.className="dialog-overlay"; overlay.style.display="flex";
+      const dlg=document.createElement("div");
+      dlg.className="dialog";
+      let html=`<div class="dialog-title">${formatDateJP(date)} の予定</div><div class="dialog-body">`;
+      if(schedule){
+        html+=`<div>現在の予定：<b>${schedule.label||schedule.type}</b></div><div class="dialog-small-note">公式戦や試験などの固定イベントは変更できません。</div>`;
+      }else{
+        html+=`<div>現在の予定：なし</div>`;
+        html+=`<div class="dialog-small-note">この日は次の予定を入れられます。</div><ul style="font-size:12px; margin-left:1em; margin-top:4px;">`;
+        if(diffDays>=14 && isWeekend) html+=`<li>練習試合を組む</li>`;
+        if(isNovToJanScout) html+=`<li>スカウトに行く</li>`;
+        html+=`</ul>`;
+      }
+      html+=`</div><div class="dialog-actions"><button class="btn-dialog" id="cal-dialog-cancel">閉じる</button>`;
+      if(!schedule){
+        if(diffDays>=14 && isWeekend) html+=`<button class="btn-dialog btn-dialog-primary" id="cal-dialog-match">練習試合</button>`;
+        if(isNovToJanScout) html+=`<button class="btn-dialog btn-dialog-primary" id="cal-dialog-scout">スカウト</button>`;
+      }
+      html+=`</div>`;
+      dlg.innerHTML=html; overlay.appendChild(dlg); document.body.appendChild(overlay);
+
+      dlg.querySelector("#cal-dialog-cancel").onclick=()=>{document.body.removeChild(overlay);};
+      const matchBtn=dlg.querySelector("#cal-dialog-match");
+      if(matchBtn){
+        matchBtn.onclick=()=>{
+          gameState.schedules[dateKey]={type:"practice_match",label:"練習試合"};
+          saveSlot(currentSlotId,gameState); renderCalendar(); document.body.removeChild(overlay);
+        };
+      }
+      const scoutBtn=dlg.querySelector("#cal-dialog-scout");
+      if(scoutBtn){
+        scoutBtn.onclick=()=>{
+          gameState.schedules[dateKey]={type:"scout",label:"中学生スカウト"};
+          saveSlot(currentSlotId,gameState); renderCalendar(); document.body.removeChild(overlay);
+        };
+      }
+    }
+
+    /* 日付進行 */
+
+    function advanceWithCard(card){
+      let remaining=card.days;
+      let lastEvent=null;
+      while(remaining>0){
+        const info=advanceOneDay(card);
+        if(info) lastEvent=info;
+        remaining--;
+        if(info && info.stop) break;
+      }
+      if(lastEvent){
+        showEventModal(lastEvent.title,lastEvent.body,lastEvent.image);
+      }else{
+        const d=currentDateObj(gameState);
+        homeLog.textContent=`${formatDateJP(d)}：特に大きな出来事はありませんでした。`;
+      }
+    }
+
+    const eventOverlay=document.getElementById("event-overlay");
+    const eventDialogImage=document.getElementById("event-dialog-image");
+    const eventDialogTitle=document.getElementById("event-dialog-title");
+    const eventDialogBody=document.getElementById("event-dialog-body");
+    const eventDialogOk=document.getElementById("event-dialog-ok");
+
+    function showEventModal(title,body,image){
+      eventDialogTitle.textContent=title;
+      eventDialogBody.innerHTML=body.replace(/\n/g,"<br>");
+      eventDialogImage.src=image||"E公式戦.jpg";
+      eventOverlay.style.display="flex";
+    }
+
+    eventDialogOk.onclick=()=>{
+      eventOverlay.style.display="none";
+      const d=currentDateObj(gameState);
+      homeLog.textContent=`${formatDateJP(d)} のイベントが終了しました。`;
+      updateMiniCalendarDisplay();
+      homeHeaderDate.textContent=formatDateJP(d);
+    };
+
+    function advanceOneDay(card){
+      const date=currentDateObj(gameState);
+      const next=new Date(date.getFullYear(),date.getMonth(),date.getDate()+1);
+      const yearChanged=next.getFullYear()!==date.getFullYear();
+      if(yearChanged) ensureFixedSchedulesForYear(next.getFullYear());
+      setDateFromObj(gameState,next);
+
+      const key=`${next.getFullYear()}-${next.getMonth()+1}-${next.getDate()}`;
+      const schedule=gameState.schedules[key];
+
+      ensureCalendarTilesForMonth(next.getFullYear(),next.getMonth());
+      const monthKey=`${next.getFullYear()}-${next.getMonth()+1}`;
+      const tiles=gameState.calendar[monthKey]||{};
+      const tile=tiles[next.getDate()]||{color:"white"};
+
+      if(schedule){
+        if(schedule.type==="official"){
+          return{stop:true,title:"公式戦",body:`${schedule.label} が行われます（試合処理は後で実装予定）。`,image:"E公式戦.jpg"};
+        }else if(schedule.type==="practice_match"){
+          return{stop:true,title:"練習試合",body:`今日は練習試合の日です（試合処理は後で実装予定）。`,image:"E練習試合.jpg"};
+        }else if(schedule.type==="scout"){
+          return{stop:true,title:"中学生スカウト",body:`今日は中学生をスカウトしに行きます（詳細処理は後で実装予定）。`,image:"Eスカウト.jpg"};
+        }else if(schedule.type==="exam"){
+          return{stop:true,title:"期末試験",body:`今日は期末試験のため練習はお休みです。全員の体力が全回復します（※回復処理は後で実装）。`,image:"E試験.jpg"};
+        }else if(schedule.type==="camp"){
+          return{stop:true,title:schedule.label,body:`今日は${schedule.label}の期間です（合宿の詳細効果は後で実装予定）。`,image:"E走り込み.gif"};
+        }else if(schedule.type==="ceremony"){
+          return{stop:true,title:schedule.label,body:`今日は${schedule.label}です。新しい出会いと別れのイベントです（処理は後で実装予定）。`,image:(schedule.subType==="graduation"?"E卒業式.jpg":"E入学式.jpg")};
+        }
+      }
+
+      const eventInfo=handleTileEvent(next,tile,card);
+      return eventInfo;
+    }
+
+    function handleTileEvent(dateObj,tile,card){
+      const color=tile.color||"white";
+      const dateStr=formatDateJP(dateObj);
+
+      if(color==="yellow"){
+        return{
+          stop:true,
+          title:"黄色マス",
+          body:`${dateStr}\n今日はラッキーデー（黄色マス）！\nこの日の練習で得られるポイントは2倍になります（ポイント計算は今後実装）。\n体力の消費は増えません。`,
+          image:"E野球マス.jpg"
+        };
+      }
+      if(color==="green"){
+        return{
+          stop:false,
+          title:"緑マス",
+          body:`${dateStr}\n今日は体力回復マス（緑）です。\n全員の体力が1回復します（回復処理は今後実装）。`,
+          image:"E走り込み.gif"
+        };
+      }
+      if(color==="blue"){
+        return{
+          stop:false,
+          title:"青マスイベント",
+          body:`${dateStr}\n青マスで良いことが起こりました（詳細な能力UP処理は今後実装）。`,
+          image:"E公式戦.jpg"
+        };
+      }
+      if(color==="red"){
+        return{
+          stop:false,
+          title:"赤マスイベント",
+          body:`${dateStr}\n赤マスで良くないイベントが起こりました（ケガ・やる気ダウンなどの詳細処理は今後実装）。`,
+          image:"E卒業式.jpg"
+        };
+      }
+      if(color==="baseball"){
+        return{
+          stop:true,
+          title:"野球マスイベント",
+          body:`${dateStr}\n野球ボールマス！ランダムに3人が特殊能力を得るチャンスです（能力付与処理は今後実装）。`,
+          image:"E野球マス.jpg"
+        };
+      }
+      if(color==="white"){
+        return{
+          stop:false,
+          title:"白マス",
+          body:`${dateStr}\n白マスです。良いこと・悪いこと・日常イベントのいずれかが起こります（詳細は今後実装）。`,
+          image:"E走り込み.gif"
+        };
+      }
+      return null;
+    }
+
+    renderSlotList();
   </script>
 </body>
 </html>
